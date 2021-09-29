@@ -1,6 +1,6 @@
 <section class="footer">
     <footer>
-        <div class = "footer_div">  
+        <div class = "footer_div">
         <nav class="cover-navigation navigation--social">
           <ul class="navigation">
 
@@ -24,7 +24,7 @@
           {% endif %}
 
           {% if site.social.juejin %}
-          <!-- Zhihu -->
+          <!-- juejin -->
           <li class="navigation__item_social">
             <a href="https://juejin.im/user/{{site.social.juejin}}" title="@{{site.social.juejin}}" target="_blank">
               <div class="footer-social-icon" style="background:url(/images/juejin.png);"></div>
@@ -34,7 +34,7 @@
           {% endif %}
 
           {% if site.social.jianshu %}
-          <!-- Zhihu -->
+          <!-- jianshu -->
           <li class="navigation__item_social">
             <a href="https://www.jianshu.com/u/{{site.social.jianshu}}" title="@{{site.social.jianshu}}" target="_blank">
               <div class="footer-social-icon" style="background:url(/images/jianshu.png);"></div>
@@ -42,6 +42,16 @@
           </li>
 
           {% endif %}
+
+            {% if site.social.csdn %}
+            <!-- CSDN -->
+            <li class="navigation__item_social">
+              <a href="https://blog.csdn.net/{{site.social.csdn}}" title="@{{site.social.csdn}}" target="_blank">
+                <div class="footer-social-icon" style="background:url(/images/csdn.png);"></div>
+              </a>
+            </li>
+
+            {% endif %}
 
           {% if site.social.weibo %}
           <!-- Weibo -->
@@ -52,7 +62,7 @@
           </li>
           {% endif %}
 
-          
+
           {% if site.social.twitter %}
           <!-- Twitter -->
           <li class="navigation__item_social">
@@ -71,7 +81,7 @@
             </a>
           </li>
           {% endif %}
-          
+
           <!-- RSS -->
           <li class="navigation__item_social">
             <a href="/feed.xml" rel="author" title="RSS" target="_blank">
@@ -85,14 +95,14 @@
 
         </div>
 
-        <div class = "footer_div">  
+        <div class = "footer_div">
            <p class="copyright text-muted">
             Copyright &copy; {{ site.title }} {{ site.time | date: '%Y' }} Theme by <a href="https://leopardpan.cn/">leopardpan</a> |
-            <iframe
-                style="margin-left: 2px; margin-bottom:-5px;"
-                frameborder="0" scrolling="0" width="91px" height="20px"
-                src="https://ghbtns.com/github-btn.html?user=leopardpan&repo=leopardpan.github.io&type=star&count=true" >
-            </iframe>
+<!--            <iframe-->
+<!--                style="margin-left: 2px; margin-bottom:-5px;"-->
+<!--                frameborder="0" scrolling="0" width="91px" height="20px"-->
+<!--                src="https://ghbtns.com/github-btn.html?user=leopardpan&repo=leopardpan.github.io&type=star&count=true" >-->
+<!--            </iframe>-->
             </p>
         	<div align="right">
     			<link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
