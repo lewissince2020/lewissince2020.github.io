@@ -28,18 +28,12 @@
 
     <div class="content-wrapper">
         <div class="content-wrapper__inner">
-            <!-- 在正文开头添加网易云音乐插件 -->
-            {% if site.music-id %}
-            {% include cloud-music.html %}
-            {% endif %}
-
             {{ content }}
             {% include footer.html %}
         </div>
     </div>
 
     {% include external.html %}
-    {% include open-embed.html %}
 
   </body>
 
