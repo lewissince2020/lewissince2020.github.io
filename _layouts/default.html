@@ -5,7 +5,7 @@
 
   <body>
 
-    <span class="mobile btn-mobile-menu">        
+    <span class="mobile btn-mobile-menu">
       <div class="nav_container">
          <nav class="nav-menu-item" style = "float:right">
             <i class="nav-menu-item">
@@ -23,18 +23,24 @@
           </nav>
       </div>
     </span>
-    
+
     {% include side-panel.html %}
 
     <div class="content-wrapper">
         <div class="content-wrapper__inner">
+            <!-- 在正文开头添加网易云音乐插件 -->
+            {% if site.music-id %}
+            {% include cloud-music.html %}
+            {% endif %}
+
             {{ content }}
             {% include footer.html %}
         </div>
     </div>
-    
+
     {% include external.html %}
-    
+    {% include open-embed.html %}
+
   </body>
 
 </html>
