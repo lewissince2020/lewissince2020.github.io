@@ -1,4 +1,4 @@
-I"�<p>一个工作6年的 iOS SDK 开发者，在一家游戏公司做SDK开发和维护。</p>
+I"N<p>一个工作6年的 iOS SDK 开发者，在一家游戏公司做SDK开发和维护。</p>
 
 <p>除了iOS技术，我还一直维护着这个博客，懂一些前端的基础知识。</p>
 
@@ -23,6 +23,27 @@
 <p>博客模板会一直持续更新，请持续关注我，谢谢~</p>
 
 <section class="post-comments">
+
+  
+
+    <!-- 来必力City版安装代码 -->
+    <div id="lv-container" data-id="city" data-uid="MTAyMC81NDM5Ni8zMDg2Nw==">
+        <script type="text/javascript">
+            (function(d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+
+                if (typeof LivereTower === 'function') { return; }
+
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+    <!-- City版安装代码已完成 -->
 
   
 
