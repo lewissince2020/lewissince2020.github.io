@@ -1,0 +1,327 @@
+I"��<h1 id="分类模型评价方法">分类模型评价方法</h1>
+
+<p>评估分类器（分类模型）相对于评估回归器通常要复杂，本篇以MNIST数据集的手写数字识别分类为例，记录常用的分类器评估方法。</p>
+
+<h2 id="交叉验证cross-validation">交叉验证：Cross-Validation</h2>
+
+<ol>
+  <li>
+    <p>留一交叉验证：（Leave-One-Out Cross Validation记为LOO-CV）<strong>在数据缺乏的情况下使用</strong>，如果设原始数据有N个样本，那么LOO-CV就是N-CV，即每个样本单独作为验证集，其余的N-1个样本作为训练集，故LOO-CV会得到N个模型，用这N个模型最终的验证集的分类准确率的平均数作为此下LOO-CV分类器的性能指标。</p>
+  </li>
+  <li>
+    <p>k折交叉验证：将原始数据分成K组（一般是均分），将每个子集数据分别做一次验证集，其余的K-1组子集数据作为训练集，这样会得到K个模型，用这K个模型最终的验证集的分类准确率的平均数作为此K-CV下分类器的性能指标。K一般大于等于2，实际操作时一般从3开始取，只有在原始数据集合数据量小的时候才会尝试取2。
+<img src="https://img-blog.csdnimg.cn/f615e5826103441289399c5bc24ae0cf.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="" /></p>
+  </li>
+</ol>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#K折交叉验证
+</span><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span>
+<span class="n">scores</span><span class="o">=</span><span class="n">cross_val_score</span><span class="p">(</span><span class="n">log_reg</span><span class="p">,</span> <span class="n">X_pca_3</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">'accuracy'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>  
+<span class="k">print</span><span class="p">(</span><span class="s">"5折交叉验证平均准确率："</span><span class="p">,</span><span class="n">np</span><span class="p">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>交叉验证的局限在于面对样本分布极不均匀的情况下，例如分类正例反例时，样本中正例数目极多，那么分类正例的成功概率自然会很高，如此得到交叉验证的高准确性可信度较低。</p>
+
+<h2 id="混淆矩阵confusion-matrix">混淆矩阵：Confusion Matrix</h2>
+<p>考虑最简单的二分类情况，分类出错的可能有FP（假正例，原本是反例，误分类为正例），FN（假反例，原本是正例，误分类为反例）。
+<img src="https://img-blog.csdnimg.cn/6d14071004264f7d8bd1656c09977a39.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">confusion_matrix</span>
+<span class="k">def</span> <span class="nf">plot_confusion_matrix</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">y_pre</span><span class="o">=</span><span class="n">clf</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">confusion</span><span class="o">=</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">y_pre</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">confusion</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="p">.</span><span class="n">cm</span><span class="p">.</span><span class="n">Blues</span><span class="p">)</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">y_test</span><span class="p">))</span>
+    <span class="n">classes</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">confusion</span><span class="p">))</span>
+    <span class="n">iters</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">([[[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">],(</span><span class="n">confusion</span><span class="p">.</span><span class="n">size</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">iters</span><span class="p">:</span>
+        <span class="n">plt</span><span class="p">.</span><span class="n">text</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">confusion</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>   <span class="c1">#显示对应的数字
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"Confusion matrix of %s "</span><span class="o">%</span><span class="n">name</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+    <span class="c1"># plt.ylim(len(confusion)-0.5,-0.5)
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'prediction'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'reality'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+    
+<span class="n">plot_confusion_matrix</span><span class="p">(</span><span class="n">log_reg</span><span class="p">,</span><span class="s">'LogistRegression'</span><span class="p">)</span><span class="err">`</span>
+</code></pre></div></div>
+<p><img src="https://img-blog.csdnimg.cn/776706a8c1e743e088b31cc1ce117aa6.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />混淆矩阵沿着主对角线的分布集中度越高，代表模型的分类精度越高。</p>
+
+<h2 id="精确率召回率查准率查全率precision-and-recall">精确率&amp;召回率（查准率&amp;查全率）：Precision and Recall</h2>
+
+\[P = TP/(TP+FP)\]
+
+<p>精确率针对预测结果而言，又称查准率，即预测结果中预测正确的正样本所占总预测次数的比率，该值越大证明预测结果的准确率越高
+\(R = TP/(TP+FN)\)
+召回率针对原有样本而言，又成查全率，即预测模型预测正确的正样本占总的真实样本的比率，该值越大证明预测结果中预测到的正例数相对于样本中实际的正例数越全。所谓召回，可理解为真实的正例数在预测中再次预测出，即被召回。</p>
+
+<p><img src="https://img-blog.csdnimg.cn/6d14071004264f7d8bd1656c09977a39.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+<ul>
+  <li>精确率/召回率权衡 ：Precision/Recall Tradeoff
+精确率与召回率通常无法同时取得比较理想的结果，考虑实际中模型5分类器预测的过程，模型通过训练最终得到一个判断的阈值threshold，高于threshold判断为5，反之为非5，显而易见的时，当高阈值的情况下精确性更高，而低阈值的情况下召回率更高，即分类模型可囊括的真实正实例5的数目越多。
+<img src="https://img-blog.csdnimg.cn/29d7982c2b8b4d3f9e5d7efc10fd64d1.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></li>
+</ul>
+
+<p><img src="https://img-blog.csdnimg.cn/515eddacff7547eab9125db1c68356bc.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="" />
+高精确率和高召回率的取舍通常取决于我们需要解决的实际问题，例如我们要训练一个视频分类器，以避免将不好的内容推送给用户时，假如这里的5代表健康的视频，那么我们倾向于模型具有更高的准确性，以保证推送给用户的视频尽可能的健康，尽管这样可能会导致召回率的下降，即将一些原本健康的视频分到问题视频的类别中；在另一种情况下，考虑机场视频监控中可疑扒手识别模型中，假如这里的5代表偷窃行为，那么我们更倾向于模型能够具有更高的召回率，以尽可能地不放过任何一个扒手，尽管这样做可能会导致模型准确性下降，以至于错误警报增多。
+	准确率与召回率的权衡也可能通过绘制以准确率和召回率为坐标轴的图像曲线来看，通常称为PR曲线：
+	<img src="https://img-blog.csdnimg.cn/ec836e78d3a446308185170f45f89b5c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />
+通过该图，结合自己的实际情况，可以在确保精确率或者召回率一方达到要求的同时，仅可能选择另一参数更高的阈值，来得到符合期望的模型效果。</p>
+
+<p>此外，当模型的准确率和召回率相近时，可以使用准确率和召回率的调和平均数，通常称为F1得分，来评价模型分数</p>
+
+\[F_{1}=\frac{2}{\frac{1}{\text { precision }}+\frac{1}{\text { recall }}}=2 \times \frac{\text { precision } \times \text { recall }}{\text { precision }+\text { recall }}=\frac{T P}{T P+\frac{F N+F P}{2}}\]
+
+<h2 id="受试者工作特征曲线receiver--operating--characteristic--roc--curve">受试者工作特征曲线：receiver  operating  characteristic  (ROC)  curve</h2>
+
+<p>得此名的原因在于曲线上各点反映着相同的感受性，它们都是对同一信号刺激的反应，只不过是在几种不同的判定标准下所得的结果而已。
+它与精确率/召回率曲线非常相似，但 ROC 曲线不是绘制精确率与召回率的关系图，而是绘制真阳性率（召回的另一个名称）与假阳性率的关系图。所谓真阳性率即为召回率，而假阳性率(false positive rate)，即真实为阴性的被误认为是阳性的样本占原有样本的比率，它等价于1-真阴性率，真阴性率即真实为阴性且预测为阴性所在预测样本中的比率，真阴性率可以称为以阴性为主的准确率。</p>
+
+\[TPR = TP/(TP+FN)\]
+
+\[FPR = FP/(FP+TN) = 1-TNR\]
+
+\[TNR = TN/(TN+FP)\]
+
+<p><img src="https://img-blog.csdnimg.cn/e96a073c5ed2414f96ba09e78cf9445a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />
+FPR和TPR曲线同样具有类似准确率和召回率那样的权衡，上图虚线代表随机分类器的结果，一个好的分类器会尽可能的远离该虚线。
+一种比较分类器好坏的方法是比较ROC曲线下方的面积（Area Under the Curve），面积接近为1的分类器是最为理想的。
+	ROC曲线和PR曲线是十分类似的，经验法则告诉我们，当样本中阳性例数目较少，或者我们更加关心假阳性（假阳性为小概率）时，选择PR曲线，反之选择ROC曲线。</p>
+
+<p>最后贴一个MNIST数据集使用sgd分类手写数字是否为5的二分类器的训练及评价全流程代码</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># -*- coding: utf-8 -*-
+</span><span class="s">"""
+Created on Tue Oct  5 19:17:58 2021
+
+@author: Flower unbeaten
+"""</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">assert</span> <span class="n">sys</span><span class="p">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="c1">#Scikit-Learn ≥0.20 is required
+</span><span class="kn">import</span> <span class="nn">sklearn</span>
+<span class="k">assert</span> <span class="n">sklearn</span><span class="p">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s">"0.20"</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1">#plot pretty figures
+#引入画图库，提前设置好绘图坐标标签大小等参数
+</span><span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="n">mpl</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">'font.family'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'SimHei'</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">'axes.unicode_minus'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span><span class="c1">#绘图准备
+</span><span class="n">mpl</span><span class="p">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'axes'</span><span class="p">,</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">mpl</span><span class="p">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'xtick'</span><span class="p">,</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">mpl</span><span class="p">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'ytick'</span><span class="p">,</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="c1">#figures save path
+#静态变量统一使用大写字母+下划线分割，"."代表当前目录，os.makedirs(“保存路径”,exist_ok)
+#exist_ok为true时当文件夹已经存在时不会提示异常，为false时则会
+</span><span class="n">PROJECT_ROOT_DIR</span> <span class="o">=</span> <span class="s">"."</span>
+<span class="n">CHAPTER_ID</span> <span class="o">=</span> <span class="s">"classification"</span>
+<span class="n">IMAGES_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">PROJECT_ROOT_DIR</span><span class="p">,</span><span class="s">"images"</span><span class="p">,</span><span class="n">CHAPTER_ID</span><span class="p">)</span>
+<span class="n">os</span><span class="p">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">IMAGES_PATH</span><span class="p">,</span><span class="n">exist_ok</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="c1">#save figure function
+</span><span class="k">def</span> <span class="nf">save_fig</span><span class="p">(</span><span class="n">fig_id</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fig_extension</span><span class="o">=</span><span class="s">"png"</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">IMAGES_PATH</span><span class="p">,</span> <span class="n">fig_id</span> <span class="o">+</span> <span class="s">"."</span> <span class="o">+</span> <span class="n">fig_extension</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Saving figure"</span><span class="p">,</span> <span class="n">fig_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tight_layout</span><span class="p">:</span>
+        <span class="n">plt</span><span class="p">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="p">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">fig_extension</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">resolution</span><span class="p">)</span>
+
+<span class="c1">#import MNIST dataset
+</span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_openml</span>
+<span class="n">mnist</span> <span class="o">=</span> <span class="n">fetch_openml</span><span class="p">(</span><span class="s">'mnist_784'</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">mnist</span><span class="p">.</span><span class="n">keys</span><span class="p">()</span>
+
+<span class="c1">#overview the data
+</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">mnist</span><span class="p">[</span><span class="s">"data"</span><span class="p">]</span> <span class="p">,</span> <span class="n">mnist</span><span class="p">[</span><span class="s">"target"</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"X大小为"</span><span class="p">,</span> <span class="n">X</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"y大小为"</span><span class="p">,</span> <span class="n">y</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1">#类型转化
+#数据类型原本为DataFrame，表头索引对数据进行说明，这里我们仅关注数据本身，
+#使用DataFrame、Series的values属性转为array类型
+</span><span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">.</span><span class="n">values</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">.</span><span class="n">values</span>
+
+<span class="c1">#取一个图片看看
+</span><span class="n">some_digit</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">some_digit_image</span> <span class="o">=</span> <span class="n">some_digit</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span><span class="mi">28</span><span class="p">)</span>
+<span class="c1">#cmap指代colormap，指定为二值图
+</span><span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">some_digit_image</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">mpl</span><span class="p">.</span><span class="n">cm</span><span class="p">.</span><span class="n">binary</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">axis</span><span class="p">(</span><span class="s">"off"</span><span class="p">)</span>
+
+<span class="c1">#显示第一个数字图片，查看对应的target标签
+</span><span class="n">save_fig</span><span class="p">(</span><span class="s">"some_digit_plot"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"对应的标签为"</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">uint8</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">plot_digit</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">data</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span><span class="mi">28</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">mpl</span><span class="p">.</span><span class="n">cm</span><span class="p">.</span><span class="n">binary</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s">"nearest"</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">axis</span><span class="p">(</span><span class="s">"off"</span><span class="p">)</span>
+    
+<span class="c1">#绘制一片数字
+</span><span class="k">def</span> <span class="nf">plot_digits</span><span class="p">(</span><span class="n">instances</span><span class="p">,</span><span class="n">images_per_row</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="o">**</span><span class="n">options</span><span class="p">):</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="mi">28</span>
+    <span class="n">images_per_row</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">instances</span><span class="p">),</span><span class="n">images_per_row</span><span class="p">)</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">instance</span><span class="p">).</span><span class="n">reshape</span><span class="p">(</span><span class="n">size</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">instances</span><span class="p">]</span>
+    <span class="n">n_rows</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">instances</span><span class="p">))</span> <span class="o">//</span> <span class="n">images_per_row</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">row_images</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">n_empty</span> <span class="o">=</span> <span class="n">n_rows</span><span class="o">*</span><span class="n">images_per_row</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">instances</span><span class="p">)</span>
+    <span class="n">images</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">size</span><span class="p">,</span><span class="n">size</span><span class="o">*</span><span class="n">n_empty</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_rows</span><span class="p">):</span>
+        <span class="n">rimages</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">row</span><span class="o">*</span><span class="n">images_per_row</span> <span class="p">:</span> <span class="p">(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">images_per_row</span><span class="p">]</span>
+        <span class="n">row_images</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">rimages</span><span class="p">,</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">row_images</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span> <span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">mpl</span><span class="p">.</span><span class="n">cm</span><span class="p">.</span><span class="n">binary</span><span class="p">,</span><span class="o">**</span><span class="n">options</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">axis</span><span class="p">(</span><span class="s">"off"</span><span class="p">)</span>
+    
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">9</span><span class="p">))</span>
+<span class="n">example_images</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:</span><span class="mi">100</span><span class="p">]</span>
+<span class="n">plot_digits</span><span class="p">(</span><span class="n">example_images</span><span class="p">,</span><span class="n">images_per_row</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">save_fig</span><span class="p">(</span><span class="s">"more_digits_plot"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#数据集划分
+#MNIST数据集的训练集已经被随机打乱并划分好，前60000个为训练集，其余为测试集
+</span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:</span><span class="mi">60000</span><span class="p">],</span> <span class="n">X</span><span class="p">[</span><span class="mi">60000</span><span class="p">:],</span> <span class="n">y</span><span class="p">[:</span><span class="mi">60000</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">60000</span><span class="p">:]</span>
+
+<span class="c1">#训练一个判断数字是否为5的二分类器
+#这里的标签为布尔型，5为true，非5为false
+</span><span class="n">y_train_5</span> <span class="o">=</span><span class="p">(</span> <span class="n">y_train</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">y_test_5</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_test</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">y_5</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">5</span><span class="p">)</span>
+<span class="c1">#引入SGD分类器模型
+</span><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">SGDClassifier</span>
+<span class="c1">#tol为停止标准，即精度小于tol时停止，max_iter,最大迭代次数，iteration，迭代
+</span><span class="n">sgd_clf</span> <span class="o">=</span> <span class="n">SGDClassifier</span><span class="p">(</span><span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="c1">#使用训练集训练模型
+#通常我们想要记录训练花费时间，引入time包，使用time.time()方法记录
+</span><span class="kn">import</span> <span class="nn">time</span>
+<span class="n">tic</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">sgd_clf</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train_5</span><span class="p">)</span>
+<span class="n">toc</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"SGDClassifier cost"</span><span class="p">,(</span><span class="n">toc</span><span class="o">-</span><span class="n">tic</span><span class="p">),</span><span class="s">"s"</span> <span class="p">)</span>
+
+<span class="c1">#调用我们训练好的模型来识别之前的some_digit，使用sgd_clf.predict
+</span><span class="k">print</span><span class="p">(</span><span class="s">"训练完成的模型判断some_digit是否为5的结论是"</span><span class="p">,</span><span class="n">sgd_clf</span><span class="p">.</span><span class="n">predict</span><span class="p">([</span><span class="n">some_digit</span><span class="p">]))</span>
+
+<span class="c1">## 分类模型评价
+#K折交叉验证
+</span><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span>
+<span class="n">scores</span><span class="o">=</span><span class="n">cross_val_score</span><span class="p">(</span><span class="n">sgd_clf</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y_5</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">'accuracy'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"每折准确率为："</span><span class="p">,</span> <span class="n">scores</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"3折交叉验证平均准确率："</span><span class="p">,</span><span class="n">np</span><span class="p">.</span><span class="n">mean</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+
+<span class="c1">#也可以不用模型自带的cross_val_score，自己实现交叉验证的过程
+#引入克隆器，用于克隆已经使用某折数据训练过的模型
+</span><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">StratifiedKFold</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">clone</span>
+<span class="c1">#划分3折,创建一个三折数据划分器
+</span><span class="n">skfolds</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="n">n_splits</span> <span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="c1">#每一折单独划分训练集与测试集，每次训练得到的模型被克隆得到保存，后边的数据折在前边训练得到的模型基础上继续训练
+</span><span class="k">for</span> <span class="n">train_index</span> <span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">skfolds</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train_5</span><span class="p">):</span>
+    <span class="c1">#k折划分留一折作为测试集，其余为训练集
+</span>    <span class="n">clone_clf</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">sgd_clf</span><span class="p">)</span>
+    <span class="n">X_train_folds</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[</span><span class="n">train_index</span><span class="p">]</span>
+    <span class="n">y_train_folds</span> <span class="o">=</span> <span class="n">y_train_5</span><span class="p">[</span><span class="n">train_index</span><span class="p">]</span>
+    <span class="n">X_test_fold</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+    <span class="n">y_test_fold</span> <span class="o">=</span> <span class="n">y_train_5</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+    
+    <span class="c1">#使用训练集折训练模型，对测试集进行预测，将结果与实际测试集targe比对，得到正确数目
+</span>    <span class="n">clone_clf</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train_folds</span><span class="p">,</span> <span class="n">y_train_folds</span><span class="p">)</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">clone_clf</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test_fold</span><span class="p">)</span>
+    <span class="n">n_correct</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">y_pred</span> <span class="o">==</span> <span class="n">y_test_fold</span><span class="p">)</span>
+    <span class="c1">#计算准确率
+</span>    <span class="k">print</span><span class="p">(</span><span class="n">n_correct</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_pred</span><span class="p">))</span>
+    
+<span class="c1">#混淆矩阵
+</span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">confusion_matrix</span>
+<span class="c1">#confusion matrix function
+</span><span class="k">def</span> <span class="nf">plot_confusion_matrix</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">X_test</span><span class="p">,</span><span class="n">y_test</span><span class="p">):</span>
+    <span class="n">y_pre</span><span class="o">=</span><span class="n">clf</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">confusion</span><span class="o">=</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">y_pre</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">confusion</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="p">.</span><span class="n">cm</span><span class="p">.</span><span class="n">Oranges</span><span class="p">)</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">y_test</span><span class="p">))</span>
+    <span class="n">classes</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">confusion</span><span class="p">))</span>
+    <span class="n">iters</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">reshape</span><span class="p">([[[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">],(</span><span class="n">confusion</span><span class="p">.</span><span class="n">size</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">iters</span><span class="p">:</span>
+        <span class="n">plt</span><span class="p">.</span><span class="n">text</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">confusion</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>   <span class="c1">#显示对应的数字
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"Confusion matrix of %s "</span><span class="o">%</span><span class="n">name</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+    <span class="c1"># plt.ylim(len(confusion)-0.5,-0.5)
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'prediction'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'reality'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+    
+<span class="n">plot_confusion_matrix</span><span class="p">(</span><span class="n">sgd_clf</span><span class="p">,</span><span class="s">'SGDClassifier'</span><span class="p">,</span><span class="n">X_test</span><span class="p">,</span><span class="n">y_test_5</span><span class="p">)</span>
+<span class="n">save_fig</span><span class="p">(</span><span class="s">"SGDClassifier confusion matrix plot"</span><span class="p">)</span>
+
+<span class="c1"># PR(准确率/召回率曲线)
+#导入PR计算函数，PR曲线函数
+</span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_recall_curve</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">f1_score</span>
+<span class="c1">#计算训练集的PR，F1score，这里也可以自己根据公式来计算
+</span><span class="n">y_train_pred</span> <span class="o">=</span> <span class="n">sgd_clf</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+<span class="n">sgd_precision</span> <span class="o">=</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">y_train_5</span><span class="p">,</span> <span class="n">y_train_pred</span><span class="p">)</span>
+<span class="n">sgd_recall</span> <span class="o">=</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">y_train_5</span><span class="p">,</span> <span class="n">y_train_pred</span><span class="p">)</span>
+<span class="n">sgd_f1score</span> <span class="o">=</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y_train_5</span><span class="p">,</span> <span class="n">y_train_pred</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"P:"</span><span class="p">,</span><span class="n">sgd_precision</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"R:"</span><span class="p">,</span><span class="n">sgd_recall</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"F1:"</span><span class="p">,</span><span class="n">sgd_f1score</span><span class="p">)</span>
+
+<span class="c1">#使用cross_val_predict决策函数返回实例的预测分数，而非预测类别
+#该函数也可在生成混淆矩阵时使用，那个时候是预测类别
+</span><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_predict</span>
+<span class="n">y_scores</span> <span class="o">=</span> <span class="n">cross_val_predict</span><span class="p">(</span><span class="n">sgd_clf</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train_5</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                             <span class="n">method</span><span class="o">=</span><span class="s">"decision_function"</span><span class="p">)</span>
+<span class="n">precisions</span><span class="p">,</span> <span class="n">recalls</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">precision_recall_curve</span><span class="p">(</span><span class="n">y_train_5</span><span class="p">,</span> <span class="n">y_scores</span><span class="p">)</span>
+<span class="c1">#定义PR曲线绘制函数
+</span><span class="k">def</span> <span class="nf">plot_precision_vs_recall</span><span class="p">(</span><span class="n">precisions</span><span class="p">,</span> <span class="n">recalls</span><span class="p">):</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">recalls</span><span class="p">,</span> <span class="n">precisions</span><span class="p">,</span> <span class="s">"b-"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">"Recall"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">"Precision"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">axis</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plot_precision_vs_recall</span><span class="p">(</span><span class="n">precisions</span><span class="p">,</span> <span class="n">recalls</span><span class="p">)</span>
+<span class="n">save_fig</span><span class="p">(</span><span class="s">"precision_vs_recall_plot"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#ROC curves 受试者工作曲线
+</span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_curve</span>
+
+<span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thresholds</span> <span class="o">=</span> <span class="n">roc_curve</span><span class="p">(</span><span class="n">y_train_5</span><span class="p">,</span> <span class="n">y_scores</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">plot_roc_curve</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s">'k--'</span><span class="p">)</span> <span class="c1"># dashed diagonal
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">axis</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'False Positive Rate (Fall-Out)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'True Positive Rate (Recall)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">plt</span><span class="p">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>                
+
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plot_roc_curve</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">)</span>
+<span class="n">save_fig</span><span class="p">(</span><span class="s">"roc_curve_plot"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#使用auc（roc曲线下方面积）打分模型
+</span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_auc_score</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">"auc得分："</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y_train_5</span><span class="p">,</span> <span class="n">y_scores</span><span class="p">))</span>
+</code></pre></div></div>
+
+:ET
