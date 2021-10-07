@@ -1,0 +1,249 @@
+I"~S<h1 id="numpypandas基础">numpy&amp;pandas基础</h1>
+
+<h2 id="ndimshapedtypeastype的用法">ndim、shape、dtype、astype的用法</h2>
+
+<p>ndim：返回数组维度</p>
+
+<p>shape：返回各个维度大小的元组，类似matlab的size</p>
+
+<p>dtype：（data type）返回数据类型（例如：int32，float32）</p>
+
+<p>astype：类型转化</p>
+
+<p>eg：array.astype(“i”)</p>
+
+<p>小转大，例如int32–&gt;float64，没问题</p>
+
+<p>大转小，例如float–&gt;int32，会将小数部分截断</p>
+
+<p>string_ –&gt;float64 若字符串数组表示的为数字，将把字符串转为数值类型</p>
+
+<h2 id="数组拼接">数组拼接</h2>
+
+<p>np.concatenate( ) np.append( )</p>
+
+<p>concatenate：n 连环，v 系、串联</p>
+
+<p>append：附上，附加，增补</p>
+
+<p>两个方法主要区别在于concatenate( )可以连接多个数组，而且多维数组的shape不需要完全相同；append( )只能连接2个，而且多维数组的shape必须相同</p>
+
+<p>两方法同时有可选参数axis</p>
+
+<p>axis=0 按照行拼接。
+ axis=1 按照列拼接。
+ 不写则默认axis=0</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span> 
+<span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">))</span>
+<span class="n">结果</span><span class="err">：</span><span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>            <span class="c1">#b是一个二维array
+</span><span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>    <span class="c1">#按照行拼接
+</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+
+<span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">T</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#按照列拼接
+</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+
+</code></pre></div></div>
+
+<p>注：b.T的意思为b数组的转置</p>
+
+<p>append的意思为附加、增补x行或者x列，仅用于两个矩阵之间</p>
+
+<h2 id="pandas数据结构series和dataframe">pandas数据结构series和dataFrame</h2>
+
+<ol>
+  <li>
+    <p>pandas中主要有两种数据结构，分别是：Series和DataFrame。</p>
+  </li>
+  <li>
+    <p>Series：一种类似于一维数组的对象，是由一组数据(各种NumPy数据类型)以及一组与之相关的数据标签(即索引)组成。仅由一组数据也可产生简单的Series对象。注意：Series中的索引值是可以重复的。</p>
+
+    <ul>
+      <li>
+        <p>eg：series创建</p>
+
+        <p>可以通过一维数组创建：</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="n">np</span><span class="p">.</span><span class="n">NaN</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+<span class="n">series01</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="c1">#利用arr转化，注意Series大写，一般数据结构封装类首字母都是大写的
+</span></code></pre></div>        </div>
+
+        <p><img src="C:\Users\Flower unbeaten\AppData\Roaming\Typora\typora-user-images\image-20211006103221558.png" alt="image-20211006103221558" /></p>
+
+        <p>也可通过字典的方式创建</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dict1</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">({</span>
+<span class="s">'a'</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span>
+<span class="s">'b'</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span>
+<span class="s">'c'</span><span class="p">:</span><span class="mi">30</span>
+<span class="p">})</span>
+<span class="c1">#通过字典的方式创建，key变成了Series的索引，value变成了值
+</span></code></pre></div>        </div>
+
+        <p><img src="C:\Users\Flower unbeaten\AppData\Roaming\Typora\typora-user-images\image-20211006103621325.png" alt="image-20211006103621325" /></p>
+      </li>
+      <li>
+        <p>eg：series索引</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#索引可以创建series后再手动设置
+</span><span class="n">series02</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+<span class="n">series02</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s">'a'</span><span class="p">,</span><span class="s">'b'</span><span class="p">,</span><span class="s">'c'</span><span class="p">,</span><span class="s">'d'</span><span class="p">]</span>
+<span class="c1">#也可在创建时同步设置
+</span><span class="n">series03</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]),</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">float64</span><span class="p">,</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s">'*'</span><span class="p">,</span><span class="s">'**'</span><span class="p">,</span><span class="s">'***'</span><span class="p">,</span><span class="s">'****'</span><span class="p">])</span>
+</code></pre></div>        </div>
+
+        <p><img src="C:\Users\Flower unbeaten\AppData\Roaming\Typora\typora-user-images\image-20211006104700302.png" alt="image-20211006104700302" /></p>
+
+        <p><img src="C:\Users\Flower unbeaten\AppData\Roaming\Typora\typora-user-images\image-20211006104710507.png" alt="image-20211006104710507" /></p>
+      </li>
+      <li>
+        <p>eg：series值获取</p>
+
+        <p>通过[] + 索引的方式读取对应索引的数据，有可能返回多条数据（series的索引可以重复）</p>
+
+        <p>通过[] + 下标值的方式读取对应下标值的数据，下标值的取值范围为[0,len(Series.values)]，此外下标值也可以是负数，表示从右往左读取数据</p>
+
+        <p><strong>Series的下标值</strong>和数组的“索引”才是对应的，而<strong>Series的索引</strong>更像是给数据value赋予的一个label（标签）</p>
+
+        <p>Series获取多个值的方式类似数组，通过[]+下标值/索引值+：的形式来截取对象中一部分数据，通过索引和下标值截取区间是不同的</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#以series03为例
+#通过索引读取：
+</span><span class="n">series03</span><span class="p">[</span><span class="s">'*'</span><span class="p">:</span><span class="s">'***'</span><span class="p">]</span>
+<span class="c1">#通过下标值读取：
+</span><span class="n">series03</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>eg：series的运算</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#series运算与numpy的array类似
+</span><span class="n">series03</span><span class="p">[</span><span class="n">series03</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">series03</span><span class="p">[</span><span class="n">series03</span><span class="o">/</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">series03</span><span class="p">[</span><span class="n">np</span><span class="p">.</span><span class="n">exp</span><span class="p">(</span><span class="n">series03</span><span class="p">)]</span>
+<span class="n">series03</span><span class="p">[</span><span class="n">np</span><span class="p">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">seres03</span><span class="p">)]</span>
+<span class="c1">#fabs是float类型的abs，取绝对值
+</span>     
+<span class="c1">#series运算不会改变索引与value之间的对应关系
+</span></code></pre></div>        </div>
+      </li>
+      <li>
+        <p>series缺失值检测</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#所谓缺失值，例如pandas中的NaN，通常由于series创建时，未给索引赋值导致
+</span><span class="n">series04</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">10</span><span class="err">，</span><span class="mi">20</span><span class="err">，</span><span class="mi">30</span><span class="p">])</span>
+<span class="n">series04</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s">'a'</span><span class="p">,</span><span class="s">'b'</span><span class="p">,</span><span class="s">'c'</span><span class="p">,</span><span class="s">'d'</span><span class="p">]</span>
+<span class="c1">#这里赋值时有三个，而索引有四个，就会导致NaN的出现
+</span>     
+<span class="c1">#pandas提供了isnull和notnull函数可以用于series中检测缺失值，这两个函数返回一个布尔类型的Series，即索引与原Series一致，value值为布尔值类型
+</span><span class="n">pd</span><span class="p">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">series04</span><span class="p">)</span>
+<span class="n">pd</span><span class="p">.</span><span class="n">notnull</span><span class="p">(</span><span class="n">series04</span><span class="p">)</span>
+</code></pre></div>        </div>
+      </li>
+      <li>
+        <p>series自动对齐</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#
+</span><span class="n">series05</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">({</span>
+    <span class="s">'num1'</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span>
+    <span class="s">'num2'</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span>
+    <span class="s">'num3'</span><span class="p">:</span><span class="mi">30</span>
+<span class="p">})</span>
+<span class="n">series06</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">({</span>
+    <span class="s">'num4'</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span>
+    <span class="s">'num2'</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span>
+    <span class="s">'num3'</span><span class="p">:</span><span class="mi">30</span>
+<span class="p">})</span>
+<span class="n">series05</span><span class="o">+</span><span class="n">series06</span>
+<span class="c1">#相同索引下标会对齐，非公共索引计算会得出NaN
+</span>     
+</code></pre></div>        </div>
+
+        <p><img src="C:\Users\Flower unbeaten\AppData\Roaming\Typora\typora-user-images\image-20211006112601945.png" alt="image-20211006112601945" /></p>
+      </li>
+      <li>
+        <p>series及其索引的name属性</p>
+
+        <p>Series对象本身及其索引具有一个name属性，默认为空，根据需要可以赋值</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">series07</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s">'a'</span><span class="p">,</span><span class="s">'b'</span><span class="p">,</span><span class="s">'c'</span><span class="p">,</span><span class="s">'d'</span><span class="p">])</span>
+<span class="n">series07</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">'Series_name'</span>
+<span class="n">series07</span><span class="p">.</span><span class="n">index</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">'Series_indexName'</span>
+</code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>DataFrame：一个表格型的数据结构，包含有一组有序的列，每列可以是不同的值类型(数值、字符串、布尔型等)，DataFrame即有行索引(index)也有列索引(colum)，可以被看做是由Series组成的字典。</p>
+
+    <p><strong>DataFrame的行列表头均为索引</strong></p>
+
+    <p>默认索引表头为下标值</p>
+
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">df01</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">DataFrame</span><span class="p">[[</span><span class="s">'joe'</span><span class="p">,</span><span class="s">'suan'</span><span class="p">,</span><span class="s">'andy'</span><span class="p">],[</span><span class="mi">70</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">90</span><span class="p">]]</span>
+</code></pre></div>    </div>
+
+    <p><img src="C:\Users\Flower unbeaten\AppData\Roaming\Typora\typora-user-images\image-20211006113757271.png" alt="image-20211006113757271" /></p>
+
+    <ul>
+      <li>
+        <p>DataFrame创建</p>
+
+        <p><img src="https://img-blog.csdnimg.cn/20190806214107156.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjEwNzcxOA==,size_16,color_FFFFFF,t_70" alt="https://img-blog.csdnimg.cn/20190806214107156.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjEwNzcxOA==,size_16,color_FFFFFF,t_70" /></p>
+      </li>
+      <li>
+        <p>DataFrame索引</p>
+
+        <p>DataFrame分为行索引和列索引，默认情况下是从0开始，也可以自定义索引，添加行索引使用 index ，添加列索引使用 columns ，此操作称“重置行列索引值”</p>
+      </li>
+      <li>
+        <p>pandas中的loc-iloc-ix的使用</p>
+
+        <p>iloc是基于“位置”的dataFrame操作，i为下标值的意思，loc为location的缩写</p>
+
+        <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c1"># 使用DataFrame 和 iloc 进行单行/列的选择
+</span>    <span class="c1"># 行选择：
+</span>    <span class="n">data</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># 数据中的第一行
+</span>    <span class="n">data</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 数据中的第二行
+</span>    <span class="n">data</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 数据中的最后一行
+</span>         
+    <span class="c1"># 列选择：
+</span>    <span class="n">data</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1"># 数据中的第一列
+</span>    <span class="n">data</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="c1"># 数据中的第二列
+</span>    <span class="n">data</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 数据中的最后一列 
+</span></code></pre></div>        </div>
+
+        <p>使用iloc注意：</p>
+
+        <ol>
+          <li>iloc只选择单独一行会返回series类型，选择多行会返回DataFrame类型</li>
+          <li>使用[1:5]这种语法进行数据切片时，满足左闭右开原则，仅包含下标1，2，3，4</li>
+        </ol>
+
+        <p>loc则针对索引，DataFrame的表头来取值，同时可以使用布尔值/带条件查找</p>
+
+        <p>ix是早期pandas版本，现已经抛弃（2021）</p>
+      </li>
+      <li>
+        <p>DataFrame获取数据及其CRUD</p>
+      </li>
+    </ul>
+
+    <p>可以直接通过列索引来获取指定列，但是获取指定行需要iloc或者loc</p>
+
+    <p><a href="https://blog.csdn.net/weixin_42107718/article/details/98659921?utm_source=app">DataFrame详解</a></p>
+  </li>
+</ol>
+
+:ET
