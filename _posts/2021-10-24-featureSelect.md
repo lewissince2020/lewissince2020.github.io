@@ -1,9 +1,10 @@
 ﻿---
 layout: post
 title: 机器学习的特征筛选方法
-description:特征筛选 
+description: 特征筛选 
 tag: 机器学习
 ---
+
 # 背景题目
 抗胰腺癌候选药物分子优化建模
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/8080e51723b847b4abae0ddccde70258.png)Mole---文件提供了候选药物分子的784个属性值，包含training和test两个表，分别有1974个分子和50个分子。
