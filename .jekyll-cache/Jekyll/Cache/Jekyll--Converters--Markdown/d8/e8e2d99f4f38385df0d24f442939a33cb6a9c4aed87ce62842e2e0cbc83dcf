@@ -1,13 +1,10 @@
-I"�
+I"�
 <ul>
   <li><a href="#分类模型评价方法">分类模型评价方法</a>
     <ul>
       <li><a href="#交叉验证cross-validation">交叉验证：Cross-Validation</a></li>
-    </ul>
-  </li>
-  <li><a href="#混淆矩阵confusion-matrix">混淆矩阵：Confusion Matrix</a></li>
-  <li><a href="#精确率召回率查准率查全率precision-and-recall">精确率&amp;召回率（查准率&amp;查全率）：Precision and Recall</a>
-    <ul>
+      <li><a href="#混淆矩阵confusion-matrix">混淆矩阵：Confusion Matrix</a></li>
+      <li><a href="#精确率召回率查准率查全率precision-and-recall">精确率&amp;召回率（查准率&amp;查全率）：Precision and Recall</a></li>
       <li><a href="#受试者工作特征曲线receiver--operating--characteristic--roc--curve">受试者工作特征曲线：receiver  operating  characteristic  (ROC)  curve</a></li>
     </ul>
   </li>

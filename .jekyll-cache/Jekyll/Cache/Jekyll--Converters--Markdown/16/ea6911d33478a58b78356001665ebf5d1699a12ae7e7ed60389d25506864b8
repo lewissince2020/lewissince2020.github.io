@@ -1,0 +1,671 @@
+I"��<p>@[toc]</p>
+<h1 id="v-on绑定事件调用方法">v-on绑定事件调用方法</h1>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app-5"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;p&gt;&lt;/p&gt;</span>
+  <span class="nt">&lt;button</span> <span class="na">v-on:click=</span><span class="s">"reverseMessage"</span><span class="nt">&gt;</span>反转消息<span class="nt">&lt;/button&gt;</span>//绑定方法reverseMessage
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+<p>reverseMessage方法在Vue实例中定义：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">app5</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#app-5</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Hello Vue.js!</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">reverseMessage</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">message</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">message</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">''</span><span class="p">).</span><span class="nx">reverse</span><span class="p">().</span><span class="nx">join</span><span class="p">(</span><span class="dl">''</span><span class="p">)</span><span class="c1">//方法实体，先单个分开成单字符（split）再翻转（reverse），再合并（join）</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p><img src="https://img-blog.csdnimg.cn/20210715093437805.png" alt="在这里插入图片描述" /><img src="https://img-blog.csdnimg.cn/20210715093448235.png" alt="在这里插入图片描述" /></p>
+
+<h1 id="组件化应用构建">组件化应用构建</h1>
+<p>在 Vue 里，一个组件本质上是一个拥有预定义选项的一个 Vue 实例。在 Vue 中注册组件很简单：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 定义名为 todo-item 的新组件</span>
+<span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">'</span><span class="s1">todo-item</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">template</span><span class="p">:</span> <span class="dl">'</span><span class="s1">&lt;li&gt;这是个待办项&lt;/li&gt;</span><span class="dl">'</span><span class="c1">//模板是列表形式</span>
+<span class="p">})</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#app</span><span class="dl">'</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p>用它构建另一个组件模板，让他成为无序列表中的一项</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;ol&gt;</span>
+  <span class="c">&lt;!-- 创建一个 todo-item 组件的实例 --&gt;</span>
+  <span class="nt">&lt;todo-item</span> <span class="na">id= </span><span class="s">"app"</span><span class="nt">&gt;&lt;/todo-item&gt;</span>
+<span class="nt">&lt;/ol&gt;</span>
+</code></pre></div></div>
+
+<p>但是这样会为每个待办项渲染同样的文本，这看起来并不炫酷。我们应该能从父作用域将数据传到子组件才对。让我们来修改一下组件的定义，使之能够接受一个 prop：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">'</span><span class="s1">todo-item</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="c1">// todo-item 组件现在接受一个</span>
+  <span class="c1">// "prop"，类似于一个自定义 attribute。</span>
+  <span class="c1">// 这个 prop 名为 todo。</span>
+  <span class="na">props</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">todo</span><span class="dl">'</span><span class="p">],</span>
+  <span class="na">template</span><span class="p">:</span> <span class="dl">'</span><span class="s1">&lt;li&gt;&lt;/li&gt;</span><span class="dl">'</span><span class="c1">//这里的todo.text表明了todo是一个对象，具体见下边的Vue实例</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p>使用 v-bind 指令将待办项传到循环输出的每个组件中：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app-7"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;ol&gt;</span>
+    <span class="c">&lt;!--
+      现在我们为每个 todo-item 提供 todo 对象
+      todo 对象是变量，即其内容可以是动态的。
+      我们也需要为每个组件提供一个“key”，稍后再
+      作详细解释。
+    --&gt;</span>
+    <span class="nt">&lt;todo-item</span>
+      <span class="na">v-for=</span><span class="s">"item in groceryList"</span>    
+      <span class="na">v-bind:todo=</span><span class="s">"item"</span>
+      <span class="na">v-bind:key=</span><span class="s">"item.id"</span>
+    <span class="nt">&gt;&lt;/todo-item&gt;</span> <span class="c">&lt;!--遍历groceryList，绑定列表的每一项（item）和列表的索引（id）--&gt;</span>
+  <span class="nt">&lt;/ol&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">'</span><span class="s1">todo-item</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">props</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">todo</span><span class="dl">'</span><span class="p">],</span>
+  <span class="na">template</span><span class="p">:</span> <span class="dl">'</span><span class="s1">&lt;li&gt;&lt;/li&gt;</span><span class="dl">'</span>
+<span class="p">})</span>
+
+<span class="kd">var</span> <span class="nx">app7</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#app-7</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">groceryList</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="na">text</span><span class="p">:</span> <span class="dl">'</span><span class="s1">蔬菜</span><span class="dl">'</span> <span class="p">},</span>
+      <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="na">text</span><span class="p">:</span> <span class="dl">'</span><span class="s1">奶酪</span><span class="dl">'</span> <span class="p">},</span>
+      <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="na">text</span><span class="p">:</span> <span class="dl">'</span><span class="s1">随便其它什么人吃的东西</span><span class="dl">'</span> <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<h1 id="前端显示数据非响应式">前端显示数据非响应式</h1>
+<p>vue的数据property都是响应式的，即修改后前端显示会同步相应修改，
+使用 Object.freeze()，这会阻止修改现有的 property，也意味着响应系统无法再追踪变化。</p>
+<h1 id="实例生命周期">实例生命周期</h1>
+<p>下图展示了实例的生命周期：
+<img src="https://img-blog.csdnimg.cn/20210715103701723.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JhaWR1d2FpbWFp,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />生命周期钩子的 this 上下文指向调用它的 Vue 实例，这里先介绍几个常用的钩子：</p>
+<ul>
+  <li>created ：组件被创建后</li>
+  <li>mounted：组件被渲染后</li>
+  <li>updated ：组件更新后</li>
+  <li>destroye：组件销毁后</li>
+</ul>
+
+<h1 id="计算属性和侦听器">计算属性和侦听器</h1>
+<p>模板内的表达式非常便利，但是设计它们的初衷是用于简单运算的。在模板中放入太多的逻辑会让模板过重且难以维护。例如：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"example"</span><span class="nt">&gt;</span>
+  
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+<p>在这个地方，模板不再是简单的声明式逻辑。你必须看一段时间才能意识到，这里是想要显示变量 message 的翻转字符串。当你想要在模板中的多处包含此翻转字符串时，就会更加难以处理。所以，对于任何复杂逻辑，你都应当使用计算属性。</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"example"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;p&gt;</span>Original message: ""<span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;p&gt;</span>Computed reversed message: ""<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#example</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">message</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Hello</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="na">computed</span><span class="p">:</span> <span class="p">{</span>
+    <span class="c1">// 计算属性的 getter</span>
+    <span class="na">reversedMessage</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="c1">// `this` 指向 vm 实例</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">message</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">''</span><span class="p">).</span><span class="nx">reverse</span><span class="p">().</span><span class="nx">join</span><span class="p">(</span><span class="dl">''</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h2 id="计算属性缓存-vs-方法">计算属性缓存 vs 方法：</h2>
+<p>我们可以通过在表达式中调用方法来达到同样的效果
+不同的是计算属性是基于它们的响应式依赖进行缓存的。<strong>只在相关响应式依赖发生改变时它们才会重新求值。这就意味着只要 message 还没有发生改变，多次访问 reversedMessage 计算属性会立即返回之前的计算结果，而不必再次执行函数。</strong>
+这一点可以用时间戳来说明，加入计算属性中使用事件戳，第一次用和第二次用，时间戳是相同的，因为计算结果已经在缓存中，仅当缓存更新时，计算属性值才会更新。而假如表达式中两次使用时间戳，则结果是不同的。</p>
+<h2 id="计算属性-vs-侦听属性">计算属性 vs 侦听属性：</h2>
+<p>Vue 提供了一种更通用的方式来观察和响应 Vue 实例上的数据变动：侦听属性。当你有一些数据需要随着其它数据变动而变动时，你很容易滥用 watch——特别是如果你之前使用过 AngularJS。然而，通常更好的做法是使用计算属性而不是命令式的 watch 回调。</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"demo"</span><span class="nt">&gt;&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#demo</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">firstName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Foo</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">lastName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Bar</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">fullName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Foo Bar</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="na">watch</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">firstName</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">val</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">fullName</span> <span class="o">=</span> <span class="nx">val</span> <span class="o">+</span> <span class="dl">'</span><span class="s1"> </span><span class="dl">'</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">lastName</span>
+    <span class="p">},</span>
+    <span class="na">lastName</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">val</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">fullName</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">firstName</span> <span class="o">+</span> <span class="dl">'</span><span class="s1"> </span><span class="dl">'</span> <span class="o">+</span> <span class="nx">val</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#demo</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">firstName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Foo</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">lastName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Bar</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="na">computed</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">fullName</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">firstName</span> <span class="o">+</span> <span class="dl">'</span><span class="s1"> </span><span class="dl">'</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">lastName</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<h2 id="侦听器">侦听器（*）</h2>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"watch-example"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;p&gt;</span>
+    Ask a yes/no question:
+    <span class="nt">&lt;input</span> <span class="na">v-model=</span><span class="s">"question"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;p&gt;&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- 因为 AJAX 库和通用工具的生态已经相当丰富，Vue 核心代码没有重复 --&gt;</span>
+<span class="c">&lt;!-- 提供这些功能以保持精简。这也可以让你自由选择自己更熟悉的工具。 --&gt;</span>
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+<span class="kd">var</span> <span class="nx">watchExampleVM</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#watch-example</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">question</span><span class="p">:</span> <span class="dl">''</span><span class="p">,</span>
+    <span class="na">answer</span><span class="p">:</span> <span class="dl">'</span><span class="s1">I cannot give you an answer until you ask a question!</span><span class="dl">'</span>
+  <span class="p">},</span>
+  <span class="na">watch</span><span class="p">:</span> <span class="p">{</span>
+    <span class="c1">// 如果 `question` 发生改变，这个函数就会运行</span>
+    <span class="na">question</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">newQuestion</span><span class="p">,</span> <span class="nx">oldQuestion</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">answer</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">Waiting for you to stop typing...</span><span class="dl">'</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">debouncedGetAnswer</span><span class="p">()</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="na">created</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// `_.debounce` 是一个通过 Lodash 限制操作频率的函数。</span>
+    <span class="c1">// 在这个例子中，我们希望限制访问 yesno.wtf/api 的频率</span>
+    <span class="c1">// AJAX 请求直到用户输入完毕才会发出。想要了解更多关于</span>
+    <span class="c1">// `_.debounce` 函数 (及其近亲 `_.throttle`) 的知识，</span>
+    <span class="c1">// 请参考：https://lodash.com/docs#debounce</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">debouncedGetAnswer</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">debounce</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">getAnswer</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+  <span class="p">},</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">getAnswer</span><span class="p">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">question</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="dl">'</span><span class="s1">?</span><span class="dl">'</span><span class="p">)</span> <span class="o">===</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">answer</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">Questions usually contain a question mark. ;-)</span><span class="dl">'</span>
+        <span class="k">return</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">answer</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">Thinking...</span><span class="dl">'</span>
+      <span class="kd">var</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">this</span>
+      <span class="nx">axios</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">https://yesno.wtf/api</span><span class="dl">'</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">vm</span><span class="p">.</span><span class="nx">answer</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">capitalize</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">answer</span><span class="p">)</span>
+        <span class="p">})</span>
+        <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">vm</span><span class="p">.</span><span class="nx">answer</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">Error! Could not reach the API. </span><span class="dl">'</span> <span class="o">+</span> <span class="nx">error</span>
+        <span class="p">})</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+<h1 id="事件处理方法">事件处理方法</h1>
+<p>除了直接绑定到一个方法，还可以在内联 JavaScript 语句中调用方法：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"example-3"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;button</span> <span class="na">v-on:click=</span><span class="s">"say('hi')"</span><span class="nt">&gt;</span>Say hi<span class="nt">&lt;/button&gt;</span>
+  <span class="nt">&lt;button</span> <span class="na">v-on:click=</span><span class="s">"say('what')"</span><span class="nt">&gt;</span>Say what<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="c">&lt;!--注意这里click直接是调用的方法--&gt;</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#example-3</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">say</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">alert</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p>有时也需要在内联语句处理器中访问原始的 DOM 事件。可以用特殊变量 $event 把它传入方法：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;button</span> <span class="na">v-on:click=</span><span class="s">"warn('Form cannot be submitted yet.', $event)"</span><span class="nt">&gt;</span>
+  Submit
+<span class="nt">&lt;/button&gt;</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// ...</span>
+<span class="nx">methods</span><span class="p">:</span> <span class="p">{</span>
+  <span class="nl">warn</span><span class="p">:</span> <span class="kd">function</span> <span class="nx">functionName</span> <span class="p">(</span><span class="nx">message</span><span class="p">,</span> <span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// 现在我们可以访问原生事件对象</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">event</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="nx">alert</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<h2 id="事件修饰符">事件修饰符</h2>
+<p>在事件处理程序中调用 event.preventDefault() 或 event.stopPropagation() 是非常常见的需求。尽管我们可以在方法中轻松实现这点，但更好的方式是：方法只有纯粹的数据逻辑，而不是去处理 DOM 事件细节。</p>
+
+<p>为了解决这个问题，Vue.js 为 v-on 提供了事件修饰符。之前提过，修饰符是由点开头的指令后缀来表示的。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.stop
+.prevent
+.capture
+.self
+.once
+.passive ```html &lt;!-- 阻止单击事件继续传播 --&gt; &lt;a v-on:click.stop="doThis"&gt;&lt;/a&gt;
+</code></pre></div></div>
+
+<!-- 提交事件不再重载页面 -->
+<form v-on:submit.prevent="onSubmit"></form>
+
+<!-- 修饰符可以串联 -->
+<p><a v-on:click.stop.prevent="doThat"></a></p>
+
+<!-- 只有修饰符 -->
+<form v-on:submit.prevent=""></form>
+
+<!-- 添加事件监听器时使用事件捕获模式 -->
+<!-- 即内部元素触发的事件先在此处理，然后才交由内部元素进行处理 -->
+<div v-on:click.capture="doThis">...</div>
+
+<!-- 只当在 event.target 是当前元素自身时触发处理函数 -->
+<!-- 即事件不是从内部元素触发的 -->
+<div v-on:click.self="doThat">...</div>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>使用修饰符时，顺序很重要；相应的代码会以同样的顺序产生。因此，用 v-on:click.prevent.self 会阻止所有的点击，而 v-on:click.self.prevent 只会阻止对元素自身的点击。
+
+# 通过 Prop 向子组件传递数据
+当组件变得越来越复杂的时候，.比如一篇博客，我们的博文不只需要标题和内容，还需要发布日期、评论等等。为每个相关的信息定义一个 prop 会变得很麻烦：
+
+```html
+&lt;blog-post
+  v-for="post in posts"
+  v-bind:key="post.id"
+  v-bind:title="post.title"
+  v-bind:content="post.content"
+  v-bind:publishedAt="post.publishedAt"
+  v-bind:comments="post.comments"
+&gt;&lt;/blog-post&gt;
+</code></pre></div></div>
+<p>所以是时候重构一下这个 <blog-post> 组件了，让它变成接受一个单独的 post prop：</blog-post></p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;blog-post</span>
+  <span class="na">v-for=</span><span class="s">"post in posts"</span>
+  <span class="na">v-bind:key=</span><span class="s">"post.id"</span>
+  <span class="na">v-bind:post=</span><span class="s">"post"</span>
+<span class="nt">&gt;&lt;/blog-post&gt;</span>
+</code></pre></div></div>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Vue.component('blog-post', {
+  props: ['post'],
+  template: `
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"blog-post"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;h3&gt;&lt;/h3&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">v-html=</span><span class="s">"post.content"</span><span class="nt">&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  `
+})
+</code></pre></div></div>
+<p>现在，不论何时为 post 对象添加一个新的 property，它都会自动地在 <blog-post> 内可用。
+值得注意的一点是v-html指令，它表示以html语句解析post.content的内容，相应的有v-text指令，同一个字符串`“&lt;h1&gt;这是一个h1元素内容&lt;/h1&gt;”`</blog-post></p>
+<ul>
+  <li>使用v-html会解析出一号标题，显示内容<code class="language-plaintext highlighter-rouge">“这是一个h1元素内容”</code></li>
+  <li>使用v-text则直接会显示字符串本身<code class="language-plaintext highlighter-rouge">“&lt;h1&gt;这是一个h1元素内容&lt;/h1&gt;”</code></li>
+</ul>
+
+<h1 id="监听子组件事件">监听子组件事件</h1>
+<p>在我们开发 <blog-post> 组件时，它的一些功能可能要求我们和父级组件进行沟通。例如我们可能会引入一个辅助功能来放大博文的字号，同时让页面的其它部分保持默认的字号。
+在其父组件中，我们可以通过添加一个 postFontSize 数据 property 来支持这个功能：</blog-post></p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"blog-posts-events-demo"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">:style=</span><span class="s">"{ fontSize: postFontSize + 'em' }"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;blog-post</span>
+            <span class="na">v-for=</span><span class="s">"post in posts"</span>
+            <span class="na">v-bind:key=</span><span class="s">"post.id"</span>
+            <span class="na">v-bind:post=</span><span class="s">"post"</span>
+            <span class="na">v-on:enlarge-text=</span><span class="s">"postFontSize += 0.1"</span>
+    <span class="nt">&gt;&lt;/blog-post&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+<span class="c">&lt;!--父级元素blog-posts-events-demo，使用了自定义组件blog-post，组件blog-post内定义有子组件button，有了这个 v-on:enlarge-text="postFontSize += 0.1" 监听器，父级组件就会接收该事件并更新 postFontSize 的值。子组件中通过调用内建的 $emit 方法并传入事件名称来触发--&gt;</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">'</span><span class="s1">blog-post</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">props</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">post</span><span class="dl">'</span><span class="p">],</span>
+    <span class="na">template</span><span class="p">:</span> <span class="s2">`
+    &lt;div class="blog-post"&gt;
+      &lt;h3&gt;&lt;/h3&gt;
+      &lt;button v-on:click="$emit('enlarge-text')"&gt;//子组件可以通过调用内建的 $emit 方法并传入事件名称来触发一个事件
+        Enlarge text
+      &lt;/button&gt;
+      &lt;div v-html="post.content"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  `</span>
+  <span class="p">})</span>
+    <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#blog-posts-events-demo</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">posts</span><span class="p">:</span>  <span class="p">[</span>
+        <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="na">title</span><span class="p">:</span> <span class="dl">'</span><span class="s1">My journey with Vue</span><span class="dl">'</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="na">title</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Blogging with Vue</span><span class="dl">'</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="na">title</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Why Vue is so fun</span><span class="dl">'</span> <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="na">postFontSize</span><span class="p">:</span> <span class="mi">1</span><span class="c1">//字体大小赋初值</span>
+    <span class="p">}</span>
+  <span class="p">})</span>
+</code></pre></div></div>
+<p>总结：自定义父组件中使用v-on绑定事件v-on:enlarge-text=”postFontSize += 0.1”，事件定义中监听数据postFontSize，子组件button的click触发$emit（”enlarge-text）</p>
+
+<h2 id="使用事件抛出一个值">使用事件抛出一个值</h2>
+<p>有的时候用一个事件来抛出一个特定的值是非常有用的。例如我们可能想让 <blog-post> 组件决定它的文本要放大多少。这时可以使用 $emit 的第二个参数来提供这个值：</blog-post></p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;button</span> <span class="na">v-on:click=</span><span class="s">"$emit('enlarge-text', 0.1)"</span><span class="nt">&gt;</span>
+  Enlarge text
+<span class="nt">&lt;/button&gt;</span>
+</code></pre></div></div>
+<p>然后当在父级组件监听这个事件的时候，我们可以通过 $event 访问到被抛出的这个值：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;blog-post</span>
+  <span class="err">...</span>
+  <span class="na">v-on:enlarge-text=</span><span class="s">"postFontSize += $event"</span>
+<span class="nt">&gt;&lt;/blog-post&gt;</span>
+</code></pre></div></div>
+
+<p>总结：自定义父组件中使用v-on绑定事件v-on:enlarge-text=”postFontSize += $ event”，事件定义中监听数据postFontSize，子组件button的click触发$ emit（”enlarge-text，0.1），指定事件，以及参数，父组件中$ event接收参数。
+或者，如果这个事件处理函数是一个方法：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;blog-post</span>
+  <span class="err">...</span>
+  <span class="na">v-on:enlarge-text=</span><span class="s">"onEnlargeText"</span>
+<span class="nt">&gt;&lt;/blog-post&gt;</span>
+</code></pre></div></div>
+
+<p>那么这个值将会作为第一个参数传入这个方法：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">methods</span><span class="p">:</span> <span class="p">{</span>
+  <span class="nl">onEnlargeText</span><span class="p">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">enlargeAmount</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">postFontSize</span> <span class="o">+=</span> <span class="nx">enlargeAmount</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="在组件上使用v-model">在组件上使用v-model（*）</h2>
+<p>自定义事件也可以用于创建支持 v-model 的自定义输入组件。</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;input</span> <span class="na">v-model=</span><span class="s">"searchText"</span><span class="nt">&gt;</span>
+</code></pre></div></div>
+<p>等价于：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;input</span>
+  <span class="na">v-bind:value=</span><span class="s">"searchText"</span>
+  <span class="na">v-on:input=</span><span class="s">"searchText = $event.target.value"</span>
+<span class="nt">&gt;</span>
+</code></pre></div></div>
+<h1 id="动态组件">动态组件</h1>
+<p>有的时候，在不同组件之间进行动态切换是非常有用的，比如在一个多标签的界面里：
+<img src="https://img-blog.csdnimg.cn/20210715151251492.png" alt="在这里插入图片描述" />
+<img src="https://img-blog.csdnimg.cn/20210715151300699.png" alt="在这里插入图片描述" />
+上述内容可以通过 Vue 的 <component> 元素加一个特殊的 is attribute 来实现：</component></p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- 组件会在 `currentTabComponent` 改变时改变 --&gt;</span>
+<span class="nt">&lt;component</span> <span class="na">v-bind:is=</span><span class="s">"currentTabComponent"</span><span class="nt">&gt;&lt;/component&gt;</span>
+</code></pre></div></div>
+<p>在上述示例中，currentTabComponent 可以包括：
+已注册组件的名字，或 一个组件的选项对象
+动态组件深层应用以后再说，下边是实现tab切换页面的源码，有注释！</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+<span class="nt">&lt;head&gt;</span>
+  <span class="nt">&lt;title&gt;</span>Dynamic Components Example<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://unpkg.com/vue"</span><span class="nt">&gt;&lt;/script&gt;</span>
+  <span class="nt">&lt;style&gt;</span>
+    <span class="nc">.tab-button</span> <span class="p">{</span>
+      <span class="nl">padding</span><span class="p">:</span> <span class="m">6px</span> <span class="m">10px</span><span class="p">;</span>
+      <span class="nl">border-top-left-radius</span><span class="p">:</span> <span class="m">3px</span><span class="p">;</span>
+      <span class="nl">border-top-right-radius</span><span class="p">:</span> <span class="m">3px</span><span class="p">;</span>
+      <span class="nl">border</span><span class="p">:</span> <span class="m">1px</span> <span class="nb">solid</span> <span class="m">#ccc</span><span class="p">;</span>
+      <span class="nl">cursor</span><span class="p">:</span> <span class="nb">pointer</span><span class="p">;</span>
+      <span class="c">/*cursor：pointer 当鼠标悬空在该元素时会显示一个点击的小手*/</span>
+      <span class="nl">background</span><span class="p">:</span> <span class="m">#f0f0f0</span><span class="p">;</span>
+      <span class="nl">margin-bottom</span><span class="p">:</span> <span class="m">-1px</span><span class="p">;</span>
+      <span class="nl">margin-right</span><span class="p">:</span> <span class="m">-1px</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nc">.tab-button</span><span class="nd">:hover</span> <span class="p">{</span>
+      <span class="nl">background</span><span class="p">:</span> <span class="m">#e0e0e0</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nc">.tab-button.active</span> <span class="p">{</span>
+      <span class="nl">background</span><span class="p">:</span> <span class="no">red</span><span class="p">;</span>
+    <span class="c">/*  当选中时，按钮的背景色*/</span>
+    <span class="p">}</span>
+    <span class="nc">.tab</span> <span class="p">{</span>
+      <span class="nl">border</span><span class="p">:</span> <span class="m">1px</span> <span class="nb">solid</span> <span class="m">#268fd5</span><span class="p">;</span>
+      <span class="c">/*边框的颜色*/</span>
+      <span class="nl">padding</span><span class="p">:</span> <span class="m">10px</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="nt">&lt;/style&gt;</span>
+<span class="nt">&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"dynamic-component-demo"</span> <span class="na">class=</span><span class="s">"demo"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;button</span>
+          <span class="na">v-for=</span><span class="s">"tab in tabs"</span>
+          <span class="na">v-bind:key=</span><span class="s">"tab"</span>
+          <span class="na">v-bind:class=</span><span class="s">"['tab-button', { active: currentTab === tab }]"</span>
+          <span class="na">v-on:click=</span><span class="s">"currentTab = tab"</span>
+  <span class="nt">&gt;</span>
+<span class="c">&lt;!--对tabs遍历，仅当遍历到currentTab时，active为1，active是激活属性，
+激活后的渲染为.tab-button.active，在原来基础上.activev-on绑定currentTab为当前点击的元素的tab--&gt;</span>
+    
+<span class="c">&lt;!--这里取出元素的tab，显示在按钮上--&gt;</span>
+  <span class="nt">&lt;/button&gt;</span>
+<span class="c">&lt;!--至此完成上方的按钮切换--&gt;</span>
+  <span class="nt">&lt;component</span> <span class="na">v-bind:is=</span><span class="s">"currentTabComponent"</span> <span class="na">class=</span><span class="s">"tab"</span><span class="nt">&gt;&lt;/component&gt;</span>
+<span class="c">&lt;!--用is动态绑定currentTabComponent方法--&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+  <span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">"</span><span class="s2">tab-home</span><span class="dl">"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">template</span><span class="p">:</span> <span class="dl">"</span><span class="s2">&lt;div&gt;Home component&lt;/div&gt;</span><span class="dl">"</span>
+  <span class="p">});</span>
+  <span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">"</span><span class="s2">tab-posts</span><span class="dl">"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">template</span><span class="p">:</span> <span class="dl">"</span><span class="s2">&lt;div&gt;Posts component&lt;/div&gt;</span><span class="dl">"</span>
+  <span class="p">});</span>
+  <span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">"</span><span class="s2">tab-archive</span><span class="dl">"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">template</span><span class="p">:</span> <span class="dl">"</span><span class="s2">&lt;div&gt;Archive component&lt;/div&gt;</span><span class="dl">"</span>
+  <span class="p">});</span>
+  <span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">"</span><span class="s2">tab-add</span><span class="dl">"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="na">template</span><span class="p">:</span> <span class="dl">"</span><span class="s2">&lt;div&gt;add&lt;/div&gt;</span><span class="dl">"</span>
+  <span class="p">});</span>
+  <span class="c1">//定义选项子组件</span>
+  <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span> <span class="dl">"</span><span class="s2">#dynamic-component-demo</span><span class="dl">"</span><span class="p">,</span>
+    <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">currentTab</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Home</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">tabs</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">Home</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">Posts</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">Archive</span><span class="dl">"</span><span class="p">,</span><span class="dl">"</span><span class="s2">add</span><span class="dl">"</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="na">computed</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">currentTabComponent</span><span class="p">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="dl">"</span><span class="s2">tab-</span><span class="dl">"</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">currentTab</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+<span class="c1">//  定义父组件，值得注意的是计算属性中，定义了currentTabComponent方法，用于切换动态组件，实际是</span>
+<span class="c1">//  返回了要切换的组件名，tab-+currentTab,.toLowerCase()是转化为小写的意思</span>
+<span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+
+</code></pre></div></div>
+<h1 id="组件注册">组件注册</h1>
+<p>W3C 规范中的自定义组件名 (字母全小写且必须包含一个连字符)。这会帮助你避免和当前以及未来的 HTML 元素相冲突。
+ 例如：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">'</span><span class="s1">my-component-name</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">})</span>
+</code></pre></div></div>
+
+<h2 id="全局注册与局部注册">全局注册与局部注册</h2>
+<p>用 Vue.component 来创建组件都是全局注册的，也就是说它们在注册之后可以用在任何新创建的 Vue 根实例 (new Vue) 的模板中。
+局部注册的方法：
+通过一个普通的 JavaScript 对象来定义组件：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">ComponentA</span> <span class="o">=</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+<span class="kd">var</span> <span class="nx">ComponentB</span> <span class="o">=</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+<span class="kd">var</span> <span class="nx">ComponentC</span> <span class="o">=</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+</code></pre></div></div>
+<p>然后在 components 选项中定义你想要使用的组件：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+  <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#app</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">components</span><span class="p">:</span> <span class="p">{</span>
+    <span class="dl">'</span><span class="s1">component-a</span><span class="dl">'</span><span class="p">:</span> <span class="nx">ComponentA</span><span class="p">,</span>
+    <span class="dl">'</span><span class="s1">component-b</span><span class="dl">'</span><span class="p">:</span> <span class="nx">ComponentB</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+<p>对于 components 对象中的每个 property 来说，其 property 名就是自定义元素的名字，其 property 值就是这个组件的选项对象。
+<strong>局部注册的组件在其子组件中不可用。</strong>
+在模块系统中局部注册：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">ComponentA</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./ComponentA</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">ComponentC</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./ComponentC</span><span class="dl">'</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">components</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nx">ComponentA</span><span class="p">,</span>
+    <span class="nx">ComponentC</span>
+  <span class="p">},</span>
+  <span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>这样 ComponentA 和 ComponentC 都可以在 ComponentB 的模板中使用。
+总结：1、import组件  2、export的components中声明组件</p>
+
+<h1 id="prop">prop</h1>
+<p>## prop的大小写（*）
+  HTML 中的 attribute 名是大小写不敏感的，所以浏览器会把所有大写字符解释为小写字符。这意味着当你使用 DOM 中的模板时，camelCase (驼峰命名法) 的 prop 名需要使用其等价的 kebab-case (短横线分隔命名) 命名：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">Vue</span><span class="p">.</span><span class="nx">component</span><span class="p">(</span><span class="dl">'</span><span class="s1">blog-post</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="c1">// 在 JavaScript 中是 camelCase 的</span>
+  <span class="na">props</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">postTitle</span><span class="dl">'</span><span class="p">],</span>
+  <span class="na">template</span><span class="p">:</span> <span class="dl">'</span><span class="s1">&lt;h3&gt;&lt;/h3&gt;</span><span class="dl">'</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- 在 HTML 中是 kebab-case 的 --&gt;</span>
+<span class="nt">&lt;blog-post</span> <span class="na">post-title=</span><span class="s">"hello!"</span><span class="nt">&gt;&lt;/blog-post&gt;</span>
+</code></pre></div></div>
+<h2 id="prop的类型">prop的类型</h2>
+<p>通常你希望每个 prop 都有指定的值类型。这时，你可以以对象形式列出 prop，这些 property 的名称和值分别是 prop 各自的名称和类型：</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">props</span><span class="p">:</span> <span class="p">{</span>
+  <span class="nl">title</span><span class="p">:</span> <span class="nb">String</span><span class="p">,</span>
+  <span class="nx">likes</span><span class="p">:</span> <span class="nb">Number</span><span class="p">,</span>
+  <span class="nx">isPublished</span><span class="p">:</span> <span class="nb">Boolean</span><span class="p">,</span>
+  <span class="nx">commentIds</span><span class="p">:</span> <span class="nb">Array</span><span class="p">,</span>
+  <span class="nx">author</span><span class="p">:</span> <span class="nb">Object</span><span class="p">,</span>
+  <span class="nx">callback</span><span class="p">:</span> <span class="nb">Function</span><span class="p">,</span>
+  <span class="nx">contactsPromise</span><span class="p">:</span> <span class="nb">Promise</span> <span class="c1">// or any other constructor</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>这不仅为你的组件提供了文档，还会在它们遇到错误的类型时从浏览器的 JavaScript 控制台提示用户。</p>
+<h2 id="传递静态或动态-prop">传递静态或动态 Prop</h2>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;blog-post</span> <span class="na">title=</span><span class="s">"My journey with Vue"</span><span class="nt">&gt;&lt;/blog-post&gt;</span>
+
+<span class="c">&lt;!-- 动态赋予一个变量的值 --&gt;</span>
+<span class="nt">&lt;blog-post</span> <span class="na">v-bind:title=</span><span class="s">"post.title"</span><span class="nt">&gt;&lt;/blog-post&gt;</span>
+
+<span class="c">&lt;!-- 动态赋予一个复杂表达式的值 --&gt;</span>
+<span class="nt">&lt;blog-post</span>
+  <span class="na">v-bind:title=</span><span class="s">"post.title + ' by ' + post.author.name"</span>
+<span class="nt">&gt;&lt;/blog-post&gt;</span>
+</code></pre></div></div>
+
+<h1 id="element-uivue快速创建组件">element-ui+vue快速创建组件</h1>
+<p>以创建跑马灯图片横幅为例：
+新建pmd.Vue文件，在网上找到组件设置的代码粘贴进去：</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;template&gt;</span>
+  <span class="nt">&lt;el-carousel</span> <span class="na">:interval=</span><span class="s">"4000"</span> <span class="na">type=</span><span class="s">"card"</span> <span class="na">height=</span><span class="s">"100px"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;el-carousel-item</span> <span class="na">v-for=</span><span class="s">"item in imagebox"</span> <span class="na">:key=</span><span class="s">"item.id"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;img</span> <span class="na">:src=</span><span class="s">"item.idView"</span> <span class="na">class=</span><span class="s">"image"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;/el-carousel-item&gt;</span>
+  <span class="nt">&lt;/el-carousel&gt;</span>
+<span class="nt">&lt;/template&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="k">export</span> <span class="k">default</span><span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">pmd</span><span class="dl">'</span><span class="p">,</span>
+  <span class="nx">data</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">imagebox</span><span class="p">:</span> <span class="p">[{</span><span class="na">id</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="na">idView</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../assets/img/band1.png</span><span class="dl">'</span><span class="p">)},</span>
+      <span class="p">{</span><span class="na">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="na">idView</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../assets/img/band2.png</span><span class="dl">'</span><span class="p">)},</span>
+      <span class="p">{</span><span class="na">id</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="na">idView</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../assets/img/band3.png</span><span class="dl">'</span><span class="p">)},</span>
+      <span class="p">{</span><span class="na">id</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="na">idView</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../assets/img/band4.png</span><span class="dl">'</span><span class="p">)},</span>
+      <span class="p">{</span><span class="na">id</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="na">idView</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../assets/img/band5.png</span><span class="dl">'</span><span class="p">)},</span>
+      <span class="p">{</span><span class="na">id</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="na">idView</span><span class="p">:</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">../../assets/img/band6.png</span><span class="dl">'</span><span class="p">)}</span>
+        <span class="c1">// imagebox是assets下一个放图片的文件夹</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+
+<span class="nt">&lt;style&gt;</span>
+<span class="nc">.el-carousel__item</span> <span class="nt">h3</span> <span class="p">{</span>
+  <span class="nl">color</span><span class="p">:</span> <span class="m">#475669</span><span class="p">;</span>
+  <span class="nl">font-size</span><span class="p">:</span> <span class="m">14px</span><span class="p">;</span>
+  <span class="nl">opacity</span><span class="p">:</span> <span class="m">0.75</span><span class="p">;</span>
+  <span class="nl">line-height</span><span class="p">:</span> <span class="m">200px</span><span class="p">;</span>
+  <span class="nl">margin</span><span class="p">:</span> <span class="m">20px</span> <span class="m">1px</span> <span class="m">1px</span> <span class="m">1px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nc">.el-carousel__item</span><span class="nd">:nth-child</span><span class="o">(</span><span class="err">2</span><span class="nt">n</span><span class="o">)</span> <span class="p">{</span>
+  <span class="nl">background-color</span><span class="p">:</span> <span class="m">#99a9bf</span><span class="p">;</span>
+  <span class="nl">margin</span><span class="p">:</span> <span class="m">5px</span> <span class="m">1px</span> <span class="m">1px</span> <span class="m">1px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nc">.el-carousel__item</span><span class="nd">:nth-child</span><span class="o">(</span><span class="err">2</span><span class="nt">n</span><span class="o">+</span><span class="err">1</span><span class="o">)</span> <span class="p">{</span>
+  <span class="nl">background-color</span><span class="p">:</span> <span class="m">#d3dce6</span><span class="p">;</span>
+  <span class="nl">margin</span><span class="p">:</span> <span class="m">5px</span> <span class="m">1px</span> <span class="m">1px</span> <span class="m">1px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nc">.image</span><span class="p">{</span>
+<span class="c">/*设置图片宽度和浏览器宽度一致*/</span>
+  <span class="nl">width</span><span class="p">:</span><span class="m">100%</span><span class="p">;</span>
+  <span class="nl">height</span><span class="p">:</span><span class="nb">inherit</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nt">&lt;/style&gt;</span>
+
+
+</code></pre></div></div>
+
+<p>我想要把这个跑马灯组件用到我的登录界面login.Vue，因此在login.	vue的JS中导入这个pmd.vue：
+<img src="https://img-blog.csdnimg.cn/20210713100412443.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JhaWR1d2FpbWFp,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" /><img src="https://img-blog.csdnimg.cn/20210713100520717.png" alt="在这里插入图片描述" />
+然后就可以在login的视图层html中直接用这个组件：
+<img src="https://img-blog.csdnimg.cn/20210713100627694.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JhaWR1d2FpbWFp,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />效果;
+<img src="https://img-blog.csdnimg.cn/20210715092641115.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2JhaWR1d2FpbWFp,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" /></p>
+
+:ET

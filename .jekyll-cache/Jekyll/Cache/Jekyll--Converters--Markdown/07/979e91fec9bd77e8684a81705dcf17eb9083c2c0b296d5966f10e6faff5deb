@@ -1,0 +1,347 @@
+I"K�<h1 id="背景题目">背景题目</h1>
+<p>抗胰腺癌候选药物分子优化建模
+<img src="https://img-blog.csdnimg.cn/8080e51723b847b4abae0ddccde70258.png" alt="在这里插入图片描述" />Mole—文件提供了候选药物分子的784个属性值，包含training和test两个表，分别有1974个分子和50个分子。
+ER—–文件提供了这些候选分子的IC50和pIC50值的大小，用于衡量分子活性，其中pIC50是IC50的负对数，取负对数的原因是为了使pIC50大小与分子活性呈正相关。同样包含training表和test表，training表中分子活性标志值pIC50已经给出，test表中的值未给，是问二需要自己预测的值
+问一：从分子的784个属性特征中筛选出20个与分子活性最相关的属性
+问二：根据筛选出的20个特征属性，训练回归模型，预测test表中pIC50值。</p>
+
+<h1 id="特征筛选">特征筛选</h1>
+<p>记录两篇写的比较详细的博客地址
+<a href="https://www.cnblogs.com/nobbyoucanyouup/p/9026146.html">特征选择- Sklearn.feature_selection的理解</a>
+<a href="https://www.cnblogs.com/s1awwhy/p/14067489.html">机器学习之特征选择（Feature Selection）</a>
+这部分主要是上述两篇文章的汇总，以及skilearn官方api中<a href="https://scikit-learn.org/stable/modules/classes.html#module-sklearn.feature_selection">feature-select相关接口</a>的说明
+<a href="https://blog.csdn.net/cymy001/article/details/79425960">sklearn库feature selection特征选择算法及API使用</a>
+<img src="https://img-blog.csdnimg.cn/7b21cd356eba434f9171a6a1161bdcfd.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+
+<h2 id="filter过滤法">Filter过滤法</h2>
+<h3 id="方差过滤">方差过滤</h3>
+<p>　Variance Threshold是通过特征本身方差来筛选特征的类。比如一个特征本身的方差很小，就表示样本在这个特征上基本没有差异，可能特征中的大多数值都一样，甚至整个特征的取值都相同，那这个特征对于样本区分没有什么作用。所以无论接下来的特征工程要做什么，都要优先消除方差为0的特征。VarianceThreshold有重要参数threshold，表示方差的阈值，表示舍弃所有方差小于threshold的特征，不填默认为0，即删除所有的记录都相同的特征。</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#设置方差阈值筛选
+</span><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">VarianceThreshold</span>
+<span class="n">selector</span> <span class="o">=</span> <span class="n">VarianceThreshold</span><span class="p">(</span><span class="n">threshold</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span><span class="c1">#设置方差过滤阈值为1
+</span><span class="n">aa</span> <span class="o">=</span> <span class="n">selector</span><span class="p">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">feature_frame</span><span class="p">)</span>
+<span class="n">aa_name</span> <span class="o">=</span> <span class="n">selector</span><span class="p">.</span><span class="n">get_support</span><span class="p">()</span><span class="c1">#get_support函数返回方差＞阈值的布尔值序列
+</span><span class="n">aa_select</span> <span class="o">=</span> <span class="n">feature_frame</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="n">aa_name</span><span class="p">]</span><span class="c1">#根据布尔值序列取出各个特征
+</span></code></pre></div></div>
+<p>这个过程其实也可以不用api函数自行实现：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">var</span> <span class="o">=</span> <span class="n">feature_frame</span><span class="p">.</span><span class="n">var</span><span class="p">()</span><span class="c1">#求每列方差
+</span><span class="n">var_thresh</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1">#设置阈值
+</span><span class="n">var_select</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">var</span><span class="o">&gt;</span><span class="n">var_thresh</span><span class="p">]</span><span class="c1">#根据条件返回序列值，取大于阈值
+</span><span class="n">X</span> <span class="o">=</span> <span class="n">feature_frame</span><span class="p">[</span><span class="n">var_select</span><span class="p">.</span><span class="n">index</span><span class="p">]</span><span class="c1">#取出特征
+</span></code></pre></div></div>
+<p>方差过滤的阈值threshold是一个超参，根据情况自行设置，设置为0可以剔除常量特征。</p>
+<h3 id="相关性过滤">相关性过滤</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  一般情况下特征如果和标签的相关性比较大的话，这样的特征能够为我们提供大量的信息。如果特征与标签无关，只会白白浪费我们的算力，还可能给模型带来噪声。在 sklearn 中有三种常用的方法来评判特征和标签之间的相关性：卡方、F检验和互信息。
+  此外还可以从特征间的相关性考虑相关性过滤，假设两个特征之间的相关性特别高，那么这两个特征构成了冗余信息，只需保留其中之一即可。 - **回归问题：f_regression（F检验回归） , mutual_info_regression（互信息回归）**
+</code></pre></div></div>
+
+<ul>
+  <li><strong>分类问题：chi2（卡方检验） , f_classif（F检验分类） , mutual_info_classif（互信息回归）</strong></li>
+</ul>
+
+<h4 id="卡方过滤">卡方过滤</h4>
+<p>卡方检验是一种用途很广的计数资料的假设检验方法。它属于非参数检验的范畴，主要是比较两个及两个以上样本率( 构成比）以及两个分类变量的关联性分析。（<strong>仅适用于分类问题</strong>）
+卡方验证的思路（<a href="https://blog.csdn.net/michaelhan3/article/details/89636139?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_term=%E5%8D%A1%E6%96%B9%E9%AA%8C%E8%AF%81&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0-89636139.nonecase&amp;spm=1018.2226.3001.4187">详情可以参考</a>）是先假设两个变量是独立无关的，由此计算出两变量独立无关时的分布情况，将这个情况与真实情况对比，根据卡方公式计算出卡方：
+<img src="https://img-blog.csdnimg.cn/2ffe29041d964c73aeaaf6c04d9dd07c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />然后通过查阅卡方表判断假设是否可靠。卡方表会提供计算的卡方值对应的p值， <strong>p 值我们一般使用 0.01 或 0.05 作为显著性水平</strong>，即p值判断的边界，p值小于0.01或0.05为相关特征。</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">chi2</span>
+ 
+<span class="c1">#使用选择器的SelectKBest函数，使用chi2模型（卡方验证）保留关联最大的300个特征
+</span><span class="n">X_fschi</span> <span class="o">=</span> <span class="n">SelectKBest</span><span class="p">(</span><span class="n">chi2</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">300</span><span class="p">).</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_fsvar</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="c1">#除了选择前K个特征，也可以设置选择百分比例SelectPercentile()
+#X_new = SelectPercentile(chi2, percentile=10).fit_transform(X, y)
+</span></code></pre></div></div>
+<p>chi2函数也可直接返回特征与目标之间的卡方值和对应的p值</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">chi</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">chi2</span><span class="p">(</span><span class="n">X_fsvar</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</code></pre></div></div>
+<p>根据各个特征计算出的p值，以0.05或者0.1为阈值过滤相应的特征</p>
+
+<h4 id="f检验">F检验</h4>
+<p>F检验，又称ANOVA，方差齐性检验，是用来捕捉每个特征与标签之间的线性关系的过滤方法。F值计算公式：
+<img src="https://img-blog.csdnimg.cn/ee885e8b6e6c4131aaceed6eabdff697.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+
+<p><a href="https://blog.csdn.net/olizxq/article/details/99177262?spm=1001.2101.3001.6650.4&amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-4.opensearchhbase&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-4.opensearchhbase">F检验的具体原理</a>
+和卡方过滤一样，F值计算出同样要查询F分布表获取p值，我们希望选<strong>取p值小于 0.05 或 0.01 的特征</strong>，这些特征与标签时显著线性相关的，而p值大于0.05或0.01的特征则被我们认为是和标签没有显著线性关系的特征，应该被删除。</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">f_classif</span>
+<span class="n">F</span><span class="p">,</span> <span class="n">pvalues_f</span> <span class="o">=</span> <span class="n">f_classif</span><span class="p">(</span><span class="n">X_fsvar</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="互信息">互信息</h4>
+<p>互信息法是用来捕捉每个特征与标签之间的任意关系（包括线性和非线性关系）的过滤方法。互信息法比F检验更加强大，F检验只能够找出线性关系，而互信息法可以找出任意关系。互信息法不返回 p 值或 F 值类似的统计量，<strong>它返回“每个特征与目标之间的互信息量的估计”，这个估计量在[0,1]之间取值，为0则表示两个变量独立，为1则表示两个变量完全相关。</strong>
+<img src="https://img-blog.csdnimg.cn/cd28a92b252945f48cfb58b514ec51f9.png" alt="在这里插入图片描述" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">mutual_info_classif</span>
+<span class="n">mutual_info</span> <span class="o">=</span> <span class="n">mutual_info_classif</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">discrete_features</span><span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>返回值为X中每个特征与目标y的互信息估计值。</p>
+
+<p><strong>使用互信息计算特征与目标间的关联性与使用相关系数（皮尔逊、斯伯尔曼、肯德尔）得出的结论具有很高的一致性。</strong>
+pandas中的dataframe可以直接计算各列之间的相关系数矩阵：
+下边的代码的思路是将目标序列与特征矩阵中每一列组成新的datafarme计算相关系数矩阵。</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#计算特征与分子活性间的皮尔逊相关系数，取绝对值
+</span><span class="n">pesrson_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">spearman_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">kendall_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">X</span><span class="p">.</span><span class="n">columns</span><span class="p">):</span>
+     <span class="n">temp_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pic50</span><span class="p">)</span>
+     <span class="n">temp_series</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span>
+     <span class="n">temp_frame</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">temp_series</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="n">temp_series</span><span class="p">.</span><span class="n">values</span><span class="p">)</span>
+     <span class="n">pesrson_martrix</span> <span class="o">=</span> <span class="n">temp_frame</span><span class="p">.</span><span class="n">corr</span><span class="p">()</span>
+     <span class="n">spearman_martrix</span> <span class="o">=</span> <span class="n">temp_frame</span><span class="p">.</span><span class="n">corr</span><span class="p">(</span><span class="s">'spearman'</span><span class="p">)</span> 
+     <span class="n">kendall_martrix</span> <span class="o">=</span> <span class="n">temp_frame</span><span class="p">.</span><span class="n">corr</span><span class="p">(</span><span class="s">'kendall'</span><span class="p">)</span>
+     <span class="n">pesrson_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">pesrson_martrix</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+     <span class="n">spearman_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">spearman_martrix</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+     <span class="n">kendall_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">kendall_martrix</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+  
+<span class="n">pesrson</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pesrson_list</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">X</span><span class="p">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">spearman</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">spearman_list</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">X</span><span class="p">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">kendall</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">kendall_list</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">X</span><span class="p">.</span><span class="n">columns</span><span class="p">)</span>
+</code></pre></div></div>
+<p>实际中也可以之间将目录序列插入特征矩阵最后一列，计算相关系数矩阵，由于相关系数矩阵反映矩阵各个列之间的相关系数，则相关系数矩阵最后一列第一行至倒数第二行即对应第一个特征到最后一个特征与目标变量间相关系数。</p>
+
+<h3 id="灰色关联度分析gra">灰色关联度分析（GRA）</h3>
+<p><a href="https://blog.csdn.net/edogawachia/article/details/85330067">灰色关联度计算方法</a>
+<img src="https://img-blog.csdnimg.cn/fbec31f5c4b24e63b6b40bc529d4255a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />代码示例：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#计算特征与分子活性间的灰色关联度
+</span><span class="n">数据归一化</span>
+<span class="n">normal_pic50</span> <span class="o">=</span> <span class="p">(</span><span class="n">pic50</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">pic50</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pic50</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">pic50</span><span class="p">))</span>  <span class="c1">#pIC50结果归一化
+</span><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">MinMaxScaler</span>
+<span class="n">scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span>
+<span class="n">scaler</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">normal_X</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">scaler</span><span class="p">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>  
+<span class="n">normal_X</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">X</span><span class="p">.</span><span class="n">index</span>
+<span class="n">normal_X</span><span class="p">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">X</span><span class="p">.</span><span class="n">columns</span>
+<span class="n">refer_seq</span> <span class="o">=</span> <span class="n">normal_pic50</span> <span class="c1">#设置分子活性为参考序列，特征矩阵每列为比较序列
+</span><span class="n">diff_matrix</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">DataFrame</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">normal_X</span><span class="p">.</span><span class="n">columns</span><span class="p">):</span>
+    <span class="c1">#比较序列与参考序列相减
+</span>    <span class="n">diff_col</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span> <span class="o">-</span> <span class="n">refer_seq</span><span class="p">)</span>
+    <span class="n">diff_col</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">feature</span>
+    <span class="n">diff_matrix</span> <span class="o">=</span> <span class="n">diff_matrix</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">diff_col</span><span class="p">)</span> <span class="c1">#这里append是按行添加的，因此后边需要转置一下
+</span><span class="n">diff_matrix</span> <span class="o">=</span> <span class="n">diff_matrix</span><span class="p">.</span><span class="n">T</span>
+<span class="c1">#求最大差和最小差
+</span><span class="n">mmax</span> <span class="o">=</span> <span class="n">diff_matrix</span><span class="p">.</span><span class="nb">abs</span><span class="p">().</span><span class="nb">max</span><span class="p">().</span><span class="nb">max</span><span class="p">()</span>
+<span class="n">mmin</span> <span class="o">=</span> <span class="n">diff_matrix</span><span class="p">.</span><span class="nb">abs</span><span class="p">().</span><span class="nb">min</span><span class="p">().</span><span class="nb">min</span><span class="p">()</span>
+<span class="n">rho</span><span class="o">=</span><span class="mf">0.5</span> <span class="c1">#设置分辨系数为0.5
+#求关联度
+</span><span class="n">r</span><span class="o">=</span><span class="p">(</span><span class="n">mmin</span><span class="o">+</span><span class="n">rho</span><span class="o">*</span><span class="n">mmax</span><span class="p">)</span><span class="o">/</span><span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="n">diff_matrix</span><span class="p">)</span><span class="o">+</span><span class="n">rho</span><span class="o">*</span><span class="n">mmax</span><span class="p">))</span>
+<span class="n">grey_corr</span><span class="o">=</span><span class="n">r</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">diff_matrix</span><span class="p">.</span><span class="n">index</span><span class="p">)</span>
+<span class="n">grey_sort</span><span class="o">=</span><span class="n">grey_corr</span><span class="p">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="c1">##可视化灰色关联度排名
+</span><span class="n">grey_select</span> <span class="o">=</span> <span class="n">grey_sort</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">pesrson_select</span><span class="p">)]</span>
+
+<span class="c1">##两种关联度的交叉
+</span><span class="n">common_test</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">grey_select</span><span class="p">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">pesrson_select</span><span class="p">.</span><span class="n">index</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"公共变量为："</span> <span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">common_test</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="p">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">grey_select</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">grey_select</span><span class="p">.</span><span class="n">index</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s">'h'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"特征与分子活性之间的灰色关联度排序"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="wrapper包装法">Wrapper包装法</h2>
+<p><strong>包装法将特征包装进模型通过评估模型效果，判断特征的去留</strong>。在初始特征集上训练评估器，并且通过coef_属性或通过feature_importances_属性获得每个特征的重要性。然后，从当前的一组特征中修剪最不重要的特征。在修剪的集合上递归地重复该过程，直到最终到达所需数量的要选择的特征。
+<img src="https://img-blog.csdnimg.cn/f051141b9ad44b8fa7a52f2610ce21c4.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />包装法最典型的方法为递归特征消除法Recursive feature elimination (RFE)
+主要思想是反复的构建模型（如SVM或者回归模型）然后选出最差的（或者最好的）的特征（可以根据系数来选），把选出来的特征放到一边，然后在剩余的特征上重复这个过程，直到所有特征都遍历了。这个过程中特征被消除的次序就是特征的排序。因此，这是一种寻找最优特征子集的贪心算法。</p>
+
+<p>RFE的稳定性很大程度上取决于在迭代的时候底层用哪种模型。例如，假如RFE采用的普通的回归，没有经过正则化的回归是不稳定的，那么RFE就是不稳定的；假如采用的是Ridge，而用Ridge正则化的回归是稳定的，那么RFE就是稳定的。
+sklearn.feature_selection.RFE
+<img src="https://img-blog.csdnimg.cn/05a33c4c72b54b8da55cc29a91490cec.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />RFE类中有两个比较重要的属性，.support_：返回所有的特征的是否最后被选中的布尔矩阵，以及.ranking_返回特征的按数次迭代中综合重要性的排名。
+<img src="https://img-blog.csdnimg.cn/0ea728da402f4c66bb8835733292636a.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+
+<p>skileanr还有一个类feature_selection.RFECV会在交叉验证循环中执行RFE以找到最佳数量的特征，增加参数cv，其他用法都和RFE一模一样。</p>
+
+<h2 id="embedded嵌入法">Embedded嵌入法</h2>
+<p><strong>包装法将特征打包不断创建新模型测试特征的有效性</strong>，而嵌入法则是将特征都嵌入到算法流程中，类似随机森林和决策树模型在模型训练过程中根据信息增益对特征重要性赋予权重，特征选择与模型生成同步进行，而<strong>不必重复创建模型</strong>测试特征的重要性。
+<img src="https://img-blog.csdnimg.cn/6d3b2d1f06f446478279b343aa717d9e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+
+<h3 id="使用selectfrommodel-选取特征feature-selection-using-selectfrommodel">使用SelectFromModel 选取特征（Feature selection using SelectFromModel）</h3>
+
+<p><img src="https://img-blog.csdnimg.cn/cd065163f70c4610ad58f0e068610b07.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />
+示例1 随机森林模型绘制学习曲线确定特征重要性阈值</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">SelectFromModel</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span> <span class="k">as</span> <span class="n">RFC</span><span class="o">&lt;</span><span class="n">br</span><span class="o">&gt;</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span><span class="o">&lt;</span><span class="n">br</span><span class="o">&gt;</span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span><span class="o">&lt;</span><span class="n">br</span><span class="o">&gt;</span>
+<span class="n">RFC_</span> <span class="o">=</span> <span class="n">RFC</span><span class="p">(</span><span class="n">n_estimators</span> <span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">X_embedded</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1">#模型的维度明显被降低了
+#画学习曲线来找最佳阈值
+</span> 
+<span class="n">RFC_</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">).</span><span class="n">feature_importances_</span>
+<span class="n">threshold</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,(</span><span class="n">RFC_</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">).</span><span class="n">feature_importances_</span><span class="p">).</span><span class="nb">max</span><span class="p">(),</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">score</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">threshold</span><span class="p">:</span>
+<span class="n">X_embedded</span> <span class="o">=</span> <span class="n">SelectFromModel</span><span class="p">(</span><span class="n">RFC_</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="n">i</span><span class="p">).</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">once</span> <span class="o">=</span> <span class="n">cross_val_score</span><span class="p">(</span><span class="n">RFC_</span><span class="p">,</span><span class="n">X_embedded</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">).</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">score</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">once</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span><span class="n">score</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">X_embedded</span> <span class="o">=</span> <span class="n">SelectFromModel</span><span class="p">(</span><span class="n">RFC_</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.00067</span><span class="p">).</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">X_embedded</span><span class="p">.</span><span class="n">shape</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cross_val_score</span><span class="p">(</span><span class="n">RFC_</span><span class="p">,</span><span class="n">X_embedded</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">cv</span><span class="o">=</span><span class="mi">5</span><span class="p">).</span><span class="n">mean</span><span class="p">())</span>
+</code></pre></div></div>
+
+<p>示例2：基于L1的特征选取</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">LinearSVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">load_iris</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">SelectFromModel</span>
+<span class="n">iris</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">iris</span><span class="p">.</span><span class="n">data</span><span class="p">,</span> <span class="n">iris</span><span class="p">.</span><span class="n">target</span>
+
+<span class="n">lsvc</span> <span class="o">=</span> <span class="n">LinearSVC</span><span class="p">(</span><span class="n">C</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">penalty</span><span class="o">=</span><span class="s">"l1"</span><span class="p">,</span> <span class="n">dual</span><span class="o">=</span><span class="bp">False</span><span class="p">).</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">SelectFromModel</span><span class="p">(</span><span class="n">lsvc</span><span class="p">,</span> <span class="n">prefit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">X_new</span> <span class="o">=</span> <span class="n">model</span><span class="p">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">X_new</span><span class="p">.</span><span class="n">shape</span>
+</code></pre></div></div>
+<h3 id="基于树模型特征筛选">基于树模型特征筛选</h3>
+<p>xgboost和lightgbm等集成学习树模型可以在训练中记录特征的重要性，这些重要性的计算方法主要有三种：
+‘weight’ - 特征在所有树上被使用的次数
+‘gain’ - 所有使用该特征的树的平均信息增益
+‘cover’ - 在树上使用该特征时的平均覆盖率
+以lightgbm为例：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lightgbm</span> <span class="k">as</span> <span class="n">lgbm</span>
+<span class="kn">from</span> <span class="nn">lightgbm</span> <span class="kn">import</span> <span class="n">plot_importance</span>
+<span class="n">lgbm_reg</span> <span class="o">=</span> <span class="n">lgbm</span><span class="p">.</span><span class="n">LGBMRegressor</span><span class="p">(</span><span class="n">objective</span><span class="o">=</span><span class="s">'regression'</span><span class="p">,</span><span class="n">max_depth</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">num_leaves</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span><span class="n">min_child_samples</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">subsample</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span><span class="n">colsample_bytree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">reg_alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">reg_lambda</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">lgbm_reg</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+<span class="c1">#选择最重要的20个特征，绘制他们的重要性排序图
+</span><span class="n">lgbm</span><span class="p">.</span><span class="n">plot_importance</span><span class="p">(</span><span class="n">lgbm_reg</span><span class="p">,</span> <span class="n">max_num_features</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1">##也可以不使用自带的plot_importance函数，手动获取特征重要性和特征名，然后绘图
+</span><span class="n">feature_weight</span> <span class="o">=</span> <span class="n">lgbm_reg</span><span class="p">.</span><span class="n">feature_importances_</span>
+<span class="n">feature_name</span> <span class="o">=</span> <span class="n">lgbm_reg</span><span class="p">.</span><span class="n">feature_name_</span>
+<span class="n">feature_sort</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">feature_weight</span> <span class="p">,</span><span class="n">index</span> <span class="o">=</span> <span class="n">feature_name</span><span class="p">)</span>
+<span class="n">feature_sort</span> <span class="o">=</span> <span class="n">feature_sort</span><span class="p">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="p">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">feature_sort</span><span class="p">.</span><span class="n">values</span><span class="p">,</span><span class="n">feature_sort</span><span class="p">.</span><span class="n">index</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s">'h'</span><span class="p">)</span>
+</code></pre></div></div>
+<p><img src="https://img-blog.csdnimg.cn/addd61f6e88e40fb80d929ef722a35b8.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />
+<img src="https://img-blog.csdnimg.cn/d216292cd1df427f91086e87af8a3b12.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" />
+两个图是一致的。</p>
+
+<h1 id="题目应用">题目应用</h1>
+<p>背景题目是预测回归类问题，结合上述特征筛选的基本方法，选择方差过滤结合相关性过滤然后使用包装法中的递归特征消除法RFE筛选出20个特征，使用lightGBM绘制特征重要性</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># -*- coding: utf-8 -*-
+</span><span class="s">"""
+Created on Sat Oct 23 14:40:01 2021
+
+@author: Flower unbeaten
+"""</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span> <span class="c1">#数据处理
+</span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span> <span class="c1">#dataFrame,Series等数据结构
+</span><span class="n">plt</span><span class="p">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">'font.family'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'SimHei'</span> <span class="c1">#设置绘图的中文显
+</span><span class="n">plt</span><span class="p">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">'axes.unicode_minus'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span><span class="c1">#matplotlib绘图准备，中文显示等
+</span><span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="n">sns</span>   <span class="c1">#导入seaborn绘图库
+</span><span class="n">sns</span><span class="p">.</span><span class="n">set_style</span><span class="p">(</span><span class="s">'darkgrid'</span><span class="p">)</span> <span class="c1">#设置seaborn绘图风格为暗色网络
+</span><span class="n">sns</span><span class="p">.</span><span class="nb">set</span><span class="p">(</span><span class="n">font</span><span class="o">=</span><span class="s">"simhei"</span><span class="p">)</span><span class="c1">#sns遇到标签需要汉字的可以在绘图前加上这句，与plt类似
+</span>
+<span class="c1">##import data
+</span><span class="n">feature_path</span> <span class="o">=</span> <span class="s">"../data/Molecular_Descriptor.xlsx"</span>
+<span class="n">c50_path</span> <span class="o">=</span> <span class="s">"../data/ERα_activity.xlsx"</span>
+<span class="n">admet_path</span> <span class="o">=</span> <span class="s">"../data/ADMET.xlsx"</span>
+<span class="n">feature_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">feature_path</span><span class="p">,</span><span class="n">sheet_name</span> <span class="o">=</span> <span class="s">'training'</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="s">'SMILES'</span><span class="p">)</span> <span class="c1">#使用pd读取excel，index_col设置为SMILES
+</span><span class="n">feature_test_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">feature_path</span><span class="p">,</span><span class="n">sheet_name</span> <span class="o">=</span> <span class="s">'test'</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="s">'SMILES'</span><span class="p">)</span>
+<span class="n">c50_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">c50_path</span><span class="p">,</span><span class="n">sheet_name</span> <span class="o">=</span> <span class="s">'training'</span><span class="p">,</span> <span class="n">index_col</span> <span class="o">=</span> <span class="s">'SMILES'</span><span class="p">)</span> 
+<span class="n">c50_frame</span><span class="p">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s">'IC50_nM'</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1">#删掉IC50_nM所在列，inplace为true代表在原来dataframe集成上删除，如果为false则会创建新的dataframe对象并删掉所在列
+</span><span class="n">pic50</span> <span class="o">=</span> <span class="n">c50_frame</span><span class="p">[</span><span class="s">'pIC50'</span><span class="p">]</span> <span class="c1">#选中某列，将dataframe转series
+</span>
+<span class="c1">##方差筛选
+</span><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">VarianceThreshold</span>
+<span class="n">var_selector</span> <span class="o">=</span> <span class="n">VarianceThreshold</span><span class="p">(</span><span class="n">threshold</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span><span class="c1">#设置方差过滤阈值为1
+</span><span class="n">var_selector</span><span class="p">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">feature_frame</span><span class="p">)</span>
+<span class="n">is_select</span> <span class="o">=</span> <span class="n">var_selector</span><span class="p">.</span><span class="n">get_support</span><span class="p">()</span><span class="c1">#get_support函数返回方差＞阈值的布尔值序列
+</span><span class="n">var_feature</span> <span class="o">=</span> <span class="n">feature_frame</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="n">is_select</span><span class="p">]</span><span class="c1">#根据布尔值序列取出各个特征所在列
+</span>
+<span class="c1">##相关性筛选
+</span><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">mutual_info_regression</span>
+<span class="n">mutualInfo</span> <span class="o">=</span> <span class="n">mutual_info_regression</span><span class="p">(</span><span class="n">var_feature</span><span class="p">,</span> <span class="n">pic50</span><span class="p">,</span> <span class="n">discrete_features</span><span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">mutualInfo_select</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">mutualInfo</span> <span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">var_feature</span><span class="p">.</span><span class="n">columns</span><span class="p">).</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">append_frame</span> <span class="o">=</span> <span class="n">var_feature</span><span class="c1">#先复制dataFrame
+</span><span class="n">append_frame</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_feature</span><span class="p">.</span><span class="n">columns</span><span class="p">),</span><span class="n">pic50</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="n">pic50</span><span class="p">.</span><span class="n">values</span><span class="p">)</span><span class="c1">#再添加一列
+</span><span class="n">corr</span> <span class="o">=</span> <span class="n">append_frame</span><span class="p">.</span><span class="n">corr</span><span class="p">()</span>
+<span class="n">corr_series</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">corr</span><span class="p">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">corr_sort</span> <span class="o">=</span> <span class="n">corr_series</span><span class="p">.</span><span class="nb">abs</span><span class="p">().</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">var_feature</span><span class="p">.</span><span class="n">drop</span><span class="p">(</span><span class="s">'pIC50'</span><span class="p">,</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">,</span> <span class="n">inplace</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="p">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">mutualInfo_select</span><span class="p">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">40</span><span class="p">],</span> <span class="n">mutualInfo_select</span><span class="p">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">40</span><span class="p">],</span> <span class="n">orient</span><span class="o">=</span><span class="s">'h'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"基于互信息的相关性筛选"</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="p">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">corr_sort</span><span class="p">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">40</span><span class="p">],</span> <span class="n">corr_sort</span><span class="p">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">40</span><span class="p">],</span> <span class="n">orient</span><span class="o">=</span><span class="s">'h'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"基于相关系数的相关性筛选"</span><span class="p">)</span>
+
+<span class="c1">##递归特征消除法
+</span><span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">RFE</span>
+<span class="c1">#ightGBM模型获取特征重要性
+</span><span class="kn">import</span> <span class="nn">lightgbm</span> <span class="k">as</span> <span class="n">lgbm</span>
+<span class="kn">from</span> <span class="nn">lightgbm</span> <span class="kn">import</span> <span class="n">plot_importance</span>
+<span class="n">lgbm_reg</span> <span class="o">=</span> <span class="n">lgbm</span><span class="p">.</span><span class="n">LGBMRegressor</span><span class="p">(</span><span class="n">objective</span><span class="o">=</span><span class="s">'regression'</span><span class="p">,</span><span class="n">max_depth</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">num_leaves</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span><span class="n">min_child_samples</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">subsample</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span><span class="n">colsample_bytree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">reg_alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">reg_lambda</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">wapper</span> <span class="o">=</span> <span class="n">RFE</span><span class="p">(</span><span class="n">estimator</span><span class="o">=</span><span class="n">lgbm_reg</span><span class="p">,</span> <span class="n">n_features_to_select</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">wapper</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">var_feature</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">var_feature</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">is_select</span> <span class="o">=</span> <span class="n">wapper</span><span class="p">.</span><span class="n">support_</span>
+<span class="n">wapper_feature</span> <span class="o">=</span> <span class="n">var_feature</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="n">is_select</span><span class="p">]</span><span class="c1">#根据布尔值序列取出各个特征所在列
+</span>
+<span class="c1">##训练集划分,三七分，随机数状态107
+</span><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span> 
+<span class="n">X_train</span><span class="p">,</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">wapper_feature</span><span class="p">,</span> <span class="n">pic50</span><span class="p">,</span><span class="n">test_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">107</span><span class="p">)</span>
+
+<span class="c1">##回归模型评价
+</span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_squared_error</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">r2_score</span><span class="p">,</span> <span class="n">explained_variance_score</span>
+<span class="n">model_index_function</span> <span class="o">=</span> <span class="p">[</span><span class="n">explained_variance_score</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">mean_squared_error</span><span class="p">,</span> <span class="n">r2_score</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">reg_score</span><span class="p">(</span><span class="n">regressor</span><span class="p">,</span><span class="n">X_test</span> <span class="p">,</span> <span class="n">y_test</span><span class="p">):</span>
+    <span class="n">y_pre</span> <span class="o">=</span> <span class="n">regressor</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">tmp_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">model_index_function</span><span class="p">:</span>
+        <span class="n">tmp_score</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pre</span><span class="p">)</span>
+        <span class="n">tmp_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_score</span><span class="p">)</span>
+    <span class="n">model_score</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">tmp_list</span><span class="p">)</span> 
+    <span class="c1"># 画出原始值的曲线
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">y_test</span><span class="p">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">100</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'real'</span><span class="p">)</span>
+    <span class="c1"># 画出各个模型的预测线
+</span>    <span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">y_pre</span><span class="p">[:</span><span class="mi">100</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">'cyan'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'lightgbm'</span><span class="p">)</span>       
+    <span class="k">return</span> <span class="n">model_score</span>
+
+<span class="n">lgbm_reg</span><span class="p">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">model_score</span> <span class="o">=</span> <span class="n">reg_score</span><span class="p">(</span><span class="n">lgbm_reg</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+
+<span class="n">lgbm</span><span class="p">.</span><span class="n">plot_importance</span><span class="p">(</span><span class="n">lgbm_reg</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"lgbm模型特征贡献排序"</span><span class="p">)</span>
+
+<span class="c1">##也可以不使用自带的plot_importance函数
+</span><span class="n">feature_weight</span> <span class="o">=</span> <span class="n">lgbm_reg</span><span class="p">.</span><span class="n">feature_importances_</span>
+<span class="n">feature_name</span> <span class="o">=</span> <span class="n">lgbm_reg</span><span class="p">.</span><span class="n">feature_name_</span>
+<span class="n">feature_sort</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">feature_weight</span> <span class="p">,</span><span class="n">index</span> <span class="o">=</span> <span class="n">feature_name</span><span class="p">)</span>
+<span class="n">feature_sort</span> <span class="o">=</span> <span class="n">feature_sort</span><span class="p">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="p">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">feature_sort</span><span class="p">.</span><span class="n">values</span><span class="p">,</span><span class="n">feature_sort</span><span class="p">.</span><span class="n">index</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s">'h'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"lgbm模型特征贡献排序"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="回归模型的评价指标">回归模型的评价指标</h1>
+<p><a href="https://blog.csdn.net/skullFang/article/details/79107127?spm=1001.2101.3001.6650.2&amp;utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.opensearchhbase&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.opensearchhbase">回归模型评价指标</a></p>
+<h2 id="rmse均方根误差">RMSE（均方根误差）</h2>
+<h2 id="mae平均绝对误差">MAE（平均绝对误差）</h2>
+<h2 id="r2决定系数">R2（决定系数）</h2>
+<p><img src="https://img-blog.csdnimg.cn/9fc1953e484d45e18007c8bb329396f2.png" alt="在这里插入图片描述" />
+  <strong>越接近1，表明方程的变量对y的解释能力越强，这个模型对数据拟合的也较好</strong></p>
+
+<p>越接近0，表明模型拟合的越差</p>
+
+<p><strong>经验值：&gt;0.4， 拟合效果好</strong></p>
+
+<p><img src="https://img-blog.csdnimg.cn/40764b73ef4546e08f94926161fbbcea.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA6Iq45YWu,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+
+<h2 id="ev解释方差">EV(解释方差)</h2>
+<p><img src="https://img-blog.csdnimg.cn/4ba2e824008a40699dad0e185846a31b.png" alt="在这里插入图片描述" />可解释方差指标衡量的是所有预测值和样本之间的差的分散程度与样本本身的分散程度的相近程度。本身是分散程度的对比。最后用1-这个值，<strong>最终值越大表示预测和样本值的分散分布程度越相近</strong>。</p>
+
+:ET

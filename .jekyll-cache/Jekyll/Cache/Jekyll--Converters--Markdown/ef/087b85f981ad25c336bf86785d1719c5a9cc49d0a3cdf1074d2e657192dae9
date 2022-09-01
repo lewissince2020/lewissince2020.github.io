@@ -1,0 +1,38 @@
+I"
+<ul>
+  <li><a href="#背景题目">背景题目</a></li>
+  <li><a href="#特征筛选">特征筛选</a>
+    <ul>
+      <li><a href="#filter过滤法">Filter过滤法</a>
+        <ul>
+          <li><a href="#方差过滤">方差过滤</a></li>
+          <li><a href="#相关性过滤">相关性过滤</a>
+            <ul>
+              <li><a href="#卡方过滤">卡方过滤</a></li>
+              <li><a href="#f检验">F检验</a></li>
+              <li><a href="#互信息">互信息</a></li>
+            </ul>
+          </li>
+          <li><a href="#灰色关联度分析gra">灰色关联度分析（GRA）</a></li>
+        </ul>
+      </li>
+      <li><a href="#wrapper包装法">Wrapper包装法</a></li>
+      <li><a href="#embedded嵌入法">Embedded嵌入法</a>
+        <ul>
+          <li><a href="#使用selectfrommodel-选取特征feature-selection-using-selectfrommodel">使用SelectFromModel 选取特征（Feature selection using SelectFromModel）</a></li>
+          <li><a href="#基于树模型特征筛选">基于树模型特征筛选</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#题目应用">题目应用</a></li>
+  <li><a href="#回归模型的评价指标">回归模型的评价指标</a>
+    <ul>
+      <li><a href="#rmse均方根误差">RMSE（均方根误差）</a></li>
+      <li><a href="#mae平均绝对误差">MAE（平均绝对误差）</a></li>
+      <li><a href="#r2决定系数">R2（决定系数）</a></li>
+      <li><a href="#ev解释方差">EV(解释方差)</a></li>
+    </ul>
+  </li>
+</ul>
+:ET

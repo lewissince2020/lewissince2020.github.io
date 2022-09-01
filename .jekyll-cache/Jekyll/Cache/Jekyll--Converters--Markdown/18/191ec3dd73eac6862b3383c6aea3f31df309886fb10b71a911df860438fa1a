@@ -1,4 +1,4 @@
-I"~S<h1 id="numpypandas基础">numpy&amp;pandas基础</h1>
+I"�<h1 id="numpypandas基础">numpy&amp;pandas基础</h1>
 
 <h2 id="ndimshapedtypeastype的用法">ndim、shape、dtype、astype的用法</h2>
 
@@ -246,4 +246,125 @@
   </li>
 </ol>
 
+<h2 id="npc_和npr_">np.c_和np.r_</h2>
+
+<h5 id="npr_是按行连接两个矩阵就是把两矩阵上下合并要求列数相等">np.r_是按行连接两个矩阵，就是把两矩阵上下合并，要求列数相等。</h5>
+
+<h5 id="npc_是按列连接两个矩阵就是把两矩阵左右合并要求行数相等">np.c_是按列连接两个矩阵，就是把两矩阵左右合并，要求行数相等。</h5>
+
+<h2 id="类似有vstackhstack方法对两个数组拼接">类似有vstack，hstack方法，对两个数组“拼接”</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="n">b</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">),</span><span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)))</span> <span class="c1">#vstack将数组a,b竖直拼接vertical
+</span><span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)))</span> <span class="c1">#hstack将数组a,b水平拼接horizontal
+</span></code></pre></div></div>
+
+<h2 id="vsplithsplit方法对数组切分">vsplit，hsplit方法，对数组“切分”</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">12</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">hsplit</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>  <span class="c1">#hsplit将数组a在水平方向切分成3等分
+</span>
+<span class="n">a1</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">12</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">hsplit</span><span class="p">(</span><span class="n">a1</span><span class="p">,(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>  <span class="c1">#hsplit将数组a在水平方向切分,从列索引3前切，到列索引4前停止
+</span>
+<span class="n">b</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">vsplit</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>  <span class="c1">#vsplit将数组b在竖直方向切分成3等分
+</span></code></pre></div></div>
+
+<h2 id="数组矩阵运算">数组矩阵运算</h2>
+
+<p>矩阵A、B</p>
+
+<p>A*B#对应元素乘积</p>
+
+<p>A.dot(B)#使用dot矩阵乘积</p>
+
+<h2 id="数组整体函数操作">数组整体函数操作</h2>
+
+<p>np.exp(B)#对数组B取e指数</p>
+
+<p>np.sqrt(B)#取平方根</p>
+
+<h2 id="rabel方法将数组维度拉成一维数组">rabel方法，将数组维度拉成一维数组</h2>
+
+<p>a=np.floor(10*np.random.random((3,4)));print(a)
+[[1. 7. 8. 5.]
+ [2. 4. 8. 4.]
+ [7. 9. 1. 3.]]</p>
+
+<p>print(a.ravel())  #ravel矩阵按行拉成一维数组
+[1. 7. 8. 5. 2. 4. 8. 4. 7. 9. 1. 3.]</p>
+
+<h2 id="数组赋值后指向直接赋值浅复制深复制">数组赋值后指向：直接赋值，浅复制，深复制</h2>
+
+<p><a href="https://blog.csdn.net/qq_33521184/article/details/89346833?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_term=python%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0-89346833.pc_search_ecpm_flag&amp;spm=1018.2226.3001.4187">Python中复制、深拷贝和浅拷贝的区别</a></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">b</span><span class="o">=</span><span class="n">a</span>
+<span class="k">print</span><span class="p">(</span><span class="n">b</span> <span class="ow">is</span> <span class="n">a</span><span class="p">)</span>   <span class="c1">#赋值后，b和a指向同一个内存地址
+</span><span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'b维度变成(3,4)后a的维度：'</span><span class="p">,</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'a的id:'</span><span class="p">,</span><span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">));</span><span class="k">print</span><span class="p">(</span><span class="s">'b的id:'</span><span class="p">,</span><span class="nb">id</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>  <span class="c1">#取a,b在内存里的id
+</span><span class="k">print</span><span class="p">(</span><span class="s">'_________________________________'</span><span class="p">)</span>
+
+<span class="n">c</span><span class="o">=</span><span class="n">a</span><span class="p">.</span><span class="n">view</span><span class="p">()</span>   <span class="c1">#c是对a的浅复制，两个数组不同，但数据共享
+</span><span class="k">print</span><span class="p">(</span><span class="n">c</span> <span class="ow">is</span> <span class="n">a</span><span class="p">)</span>
+<span class="n">c</span><span class="p">.</span><span class="n">shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">);</span> <span class="c1">#c的形态变量，a的形态没变
+</span><span class="k">print</span><span class="p">(</span><span class="s">'对c赋值前的a:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">a</span><span class="p">);</span>
+<span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span><span class="o">=</span><span class="mi">1234</span><span class="p">;</span><span class="k">print</span><span class="p">(</span><span class="s">'c:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">c</span><span class="p">);</span><span class="k">print</span><span class="p">(</span><span class="s">'对c赋值后的a:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>  <span class="c1">#c的[0,4]位置数据改变，a也改变
+</span><span class="k">print</span><span class="p">(</span><span class="s">'_________________________________'</span><span class="p">)</span>
+
+<span class="n">d</span><span class="o">=</span><span class="n">a</span><span class="p">.</span><span class="n">copy</span><span class="p">()</span>   <span class="c1">#d是对a的深复制，两个数组不同，数据也不共享
+</span><span class="k">print</span><span class="p">(</span><span class="n">d</span> <span class="ow">is</span> <span class="n">a</span><span class="p">)</span>
+<span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">9999</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'d:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">d</span><span class="p">);</span><span class="k">print</span><span class="p">(</span><span class="s">'a:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'</span><span class="p">)</span>
+
+
+<span class="c1">##在数组中找最大值的位置
+</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">)).</span><span class="n">reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'初始数据：</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+<span class="n">index</span><span class="o">=</span><span class="n">data</span><span class="p">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1">#argmax找每列的最大值位置
+</span><span class="k">print</span><span class="p">(</span><span class="s">'每一列最大值的索引:'</span><span class="p">,</span><span class="n">index</span><span class="p">)</span>
+<span class="n">data_max</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">,</span><span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="c1">#根据索引index找出data数组里的元素!!!
+</span><span class="k">print</span><span class="p">(</span><span class="s">'根据索引找出最大值：'</span><span class="p">,</span><span class="n">data_max</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'直接办法取最大值：'</span><span class="p">,</span><span class="n">data</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="c1">#array.max(axis=0)
+</span><span class="k">print</span><span class="p">(</span><span class="s">'检测两种办法取到的max是否一致：'</span><span class="p">,</span><span class="nb">all</span><span class="p">(</span><span class="n">data_max</span><span class="o">==</span><span class="n">data</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'</span><span class="p">)</span>
+
+<span class="c1">##对数组中元素“排序”
+</span><span class="k">print</span><span class="p">(</span><span class="s">'(1.)sort方法作用类np上&lt;对象参数a不变，生成数组新开辟空间给b&gt;:'</span><span class="p">)</span>
+<span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'np.sort对a进行行排序前的a:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+<span class="n">b</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">sort</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1">#sort对数组a里的元素按行排序
+</span><span class="k">print</span><span class="p">(</span><span class="s">'对a进行行排序后的b:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'np.sort对a进行行排序后的a:</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'a的id:'</span><span class="p">,</span><span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">));</span><span class="k">print</span><span class="p">(</span><span class="s">'b的id:'</span><span class="p">,</span><span class="nb">id</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">'(2.)sort方法作用对象a上,a被改变：'</span><span class="p">)</span>
+<span class="n">a</span><span class="p">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'a的id:'</span><span class="p">,</span><span class="nb">id</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'_________________________________'</span><span class="p">)</span>
+<span class="c1">#返回最大值的索引
+</span><span class="n">aa</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.3</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'初始aa数组：'</span><span class="p">,</span><span class="n">aa</span><span class="p">)</span>
+<span class="n">j</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">aa</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'对aa元素排序后的索引位置：'</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'根据索引的排序对aa重排：'</span><span class="p">,</span><span class="n">aa</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'</span><span class="p">)</span>
+
+<span class="c1">##对数组进行复制
+</span><span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">40</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">b</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">tile</span><span class="p">(</span><span class="n">a</span><span class="p">,(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="c1">#tile对a进行4行1列的复制
+</span><span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</code></pre></div></div>
 :ET
